@@ -1,5 +1,14 @@
 # 📹 Fastfood — Microserviço de Processamento de Vídeos
 
+[![Release - Build, Quality Gate and Deploy](https://github.com/FIAP-SOAT-G129/hackathon-video-ms-fase5/actions/workflows/release.yml/badge.svg)](https://github.com/FIAP-SOAT-G129/hackathon-video-ms-fase5/actions/workflows/release.yml)
+
+![Coverage](.github/badges/jacoco.svg)
+![Branches](.github/badges/branches.svg)
+
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-highlight.svg)](https://sonarcloud.io/summary/new_code?id=FIAP-SOAT-G129_hackathon-video-ms-fase5) <br />
+[![Sonar Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=FIAP-SOAT-G129_hackathon-video-ms-fase5&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=FIAP-SOAT-G129_hackathon-video-ms-fase5)
+[![Sonar Coverage](https://sonarcloud.io/api/project_badges/measure?project=FIAP-SOAT-G129_hackathon-video-ms-fase5&metric=coverage)](https://sonarcloud.io/summary/new_code?id=FIAP-SOAT-G129_hackathon-video-ms-fase5)
+
 Este repositório implementa o **Microservice de Processamento de Vídeos** da aplicação **Fastfood**, desenvolvido em **Java 21 com Spring Boot 3**.  
 Ele é responsável por receber uploads de vídeos, gerenciar seus metadados e orquestrar o processamento assíncrono para extração de frames e geração de arquivos ZIP.
 
