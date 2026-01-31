@@ -4,6 +4,7 @@ import com.hackathon.video.domain.repository.NotificationPort;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.VideoStatus;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
+import com.hackathon.video.exception.VideoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ public class UpdateVideoStatusUseCase {
 
     public void execute(UUID videoId, VideoStatus status, String errorMessage) {
         Video video = videoRepositoryPort.findById(videoId)
-                .orElseThrow(() -> new RuntimeException("Video not found"));
+                .orElseThrow(() -> new VideoNotFoundException("Video not found with id: " + videoId));
 
         if (status == VideoStatus.ERROR) {
             video.markAsError(errorMessage);

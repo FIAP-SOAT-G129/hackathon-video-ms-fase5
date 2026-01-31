@@ -2,6 +2,7 @@ package com.hackathon.video.application.usecase;
 
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
+import com.hackathon.video.exception.VideoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,7 @@ public class GetVideoUseCase {
 
     public Video findById(UUID id) {
         return videoRepositoryPort.findById(id)
-                .orElseThrow(() -> new RuntimeException("Video not found"));
+                .orElseThrow(() -> new VideoNotFoundException("Video not found with id: " + id));
     }
 
     public List<Video> findByUserId(String userId) {

@@ -3,6 +3,8 @@ package com.hackathon.video.application.usecase;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
 import com.hackathon.video.domain.repository.VideoStoragePort;
+import com.hackathon.video.exception.BusinessException;
+import com.hackathon.video.exception.VideoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +20,16 @@ public class DownloadVideoUseCase {
 
     public InputStream downloadOriginal(UUID videoId) {
         Video video = videoRepositoryPort.findById(videoId)
-                .orElseThrow(() -> new RuntimeException("Video not found"));
+                .orElseThrow(() -> new VideoNotFoundException("Video not found with id: " + videoId));
         return videoStoragePort.retrieve(video.getStoragePath());
     }
 
     public InputStream downloadZip(UUID videoId) {
         Video video = videoRepositoryPort.findById(videoId)
-                .orElseThrow(() -> new RuntimeException("Video not found"));
+                .orElseThrow(() -> new VideoNotFoundException("Video not found with id: " + videoId));
         
         if (video.getZipResultPath() == null) {
-            throw new RuntimeException("ZIP not ready yet");
+            throw new BusinessException("Zip result not available for video id: " + videoId);
         }
         
         return videoStoragePort.retrieve(video.getZipResultPath());
