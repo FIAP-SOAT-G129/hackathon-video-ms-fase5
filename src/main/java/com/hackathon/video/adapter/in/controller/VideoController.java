@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/videos")
@@ -28,20 +27,20 @@ public class VideoController {
     private final DownloadVideoUseCase downloadVideoUseCase;
     private final DeleteVideoUseCase deleteVideoUseCase;
 
-    @PostMapping
+    @PostMapping("/user/{userId}")
     public ResponseEntity<VideoResponseDTO> upload(
+            @PathVariable String userId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam("title") String title,
-            @RequestHeader("X-User-Id") String userId) throws IOException {
+            @RequestParam("title") String title) throws IOException {
         
         Video video = uploadVideoUseCase.execute(userId, title, file.getOriginalFilename(), file.getInputStream());
         return ResponseEntity.status(HttpStatus.CREATED).body(VideoMapper.toDTO(video));
     }
 
-    @GetMapping
-    public ResponseEntity<List<VideoResponseDTO>> list(@RequestHeader("X-User-Id") String userId) {
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<VideoResponseDTO>> list(@PathVariable String userId) {
         List<Video> videos = getVideoUseCase.findByUserId(userId);
-        return ResponseEntity.ok(videos.stream().map(VideoMapper::toDTO).collect(Collectors.toList()));
+        return ResponseEntity.ok(videos.stream().map(VideoMapper::toDTO).toList());
     }
 
     @GetMapping("/{videoId}")

@@ -1,6 +1,7 @@
 package com.hackathon.video.domain.entity;
 
 import com.hackathon.video.domain.enums.VideoStatus;
+import com.hackathon.video.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +25,18 @@ public class Video {
     private String errorMessage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public void validate() {
+        if (userId == null || userId.isBlank()) {
+            throw new BusinessException("User ID is required");
+        }
+        if (title == null || title.isBlank()) {
+            throw new BusinessException("Title is required");
+        }
+        if (originalFileName == null || originalFileName.isBlank()) {
+            throw new BusinessException("Original file name is required");
+        }
+    }
 
     public void updateStatus(VideoStatus newStatus) {
         this.status = newStatus;
