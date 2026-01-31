@@ -10,7 +10,7 @@ Ele é responsável por receber uploads de vídeos, gerenciar seus metadados e o
 Fornecer uma **API RESTful** para o gerenciamento do ciclo de vida de processamento de vídeos — desde o upload inicial, acompanhamento de status até o download dos resultados processados.  
 Integra-se com o módulo de **Worker de Processamento** através de mensageria assíncrona utilizando **RabbitMQ**.
 
-> 📄 **Documentação da API (Swagger):** <br/> > http://localhost:8080/swagger-ui/index.html
+> 📄 **Documentação da API (Swagger):** <br/> > http://localhost:8081/swagger-ui/index.html
 
 > 📚 **Wiki do Projeto:** <br/> > https://github.com/FIAP-SOAT-G129/.github/wiki/Fase-5
 
@@ -99,13 +99,19 @@ Estrutura do projeto:
 A aplicação já vem configurada com valores padrão no `application.yml` para funcionar com o Docker Compose. Caso deseje alterar, as principais variáveis de ambiente são:
 
 ```env
- APP_PORT=8081
- 
- DATASOURCE_URL=jdbc:postgresql://db:5432/videodb
- DATASOURCE_USERNAME=user
- DATASOURCE_PASSWORD=pass
- RABBITMQ_HOST=rabbitmq
- REDIS_HOST=redis
+APP_PORT=8081
+
+DB_HOST=db
+DB_PORT=5432
+DB_NAME=video_db
+DB_USER=user
+DB_PASSWORD=password
+
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_PORT=5672
+
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
 ### 🐳 Executando o projeto com Docker Compose

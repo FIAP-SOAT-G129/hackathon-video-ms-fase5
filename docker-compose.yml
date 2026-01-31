@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  video-api:
+    build: .
+    container_name: video-api-service
+    ports:
+      - "8081:8081"
+    environment:
+      - APP_PORT=8081
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-video_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+    networks:
+      - video-network
+
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: video-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-my_password}
+      POSTGRES_DB: ${DB_NAME:-video_db}
+    volumes:
+      - postgres_data:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - video-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-video_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: video-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - video-network
+
+  redis:
+    image: redis:alpine
+    container_name: video-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - video-network
+
+networks:
+  video-network:
+    driver: bridge

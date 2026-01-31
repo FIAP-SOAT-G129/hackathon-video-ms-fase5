@@ -1,0 +1,33 @@
+name: Release - Build, Test and Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      sonar:
+        description: "Run SonarQube analysis"
+        required: false
+        type: boolean
+        default: true
+
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  quality-gate:
+    uses: ./.github/workflows/ci-build-test.yml
+    with:
+      sonar: ${{ inputs.sonar || (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') }}
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  publish-docker:
+    needs: quality-gate
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      repository: ${{ vars.REPOSITORY }}
+    secrets:
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
