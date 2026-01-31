@@ -1,6 +1,6 @@
-package com.api.service.domain.repository;
+package com.hackathon.video.domain.repository;
 
-import com.api.service.domain.entity.Video;
+import com.hackathon.video.domain.entity.Video;
 
 public interface VideoMessagePublisherPort {
     void publishVideoProcessRequest(Video video);

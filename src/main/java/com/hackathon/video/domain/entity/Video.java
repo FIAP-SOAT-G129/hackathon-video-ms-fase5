@@ -1,6 +1,6 @@
-package com.api.service.domain.entity;
+package com.hackathon.video.domain.entity;
 
-import com.api.service.domain.enums.VideoStatus;
+import com.hackathon.video.domain.enums.VideoStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

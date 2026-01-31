@@ -9,14 +9,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String QUEUE = "video.processing.queue";
-    public static final String EXCHANGE = "video.processing.exchange";
+    public static final String QUEUE_KEY = "video.processing.queue";
+    public static final String EXCHANGE_KEY = "video.processing.exchange";
     public static final String ROUTING_KEY = "video.processing.request";
     public static final String DLQ = "video.processing.dlq";
 
     @Bean
     public Queue queue() {
-        return QueueBuilder.durable(QUEUE)
+        return QueueBuilder.durable(QUEUE_KEY)
                 .withArgument("x-dead-letter-exchange", "")
                 .withArgument("x-dead-letter-routing-key", DLQ)
                 .build();
@@ -29,7 +29,7 @@ public class RabbitMQConfig {
 
     @Bean
     public TopicExchange exchange() {
-        return new TopicExchange(EXCHANGE);
+        return new TopicExchange(EXCHANGE_KEY);
     }
 
     @Bean

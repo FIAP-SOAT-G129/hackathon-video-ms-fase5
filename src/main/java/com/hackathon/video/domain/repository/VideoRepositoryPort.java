@@ -1,6 +1,6 @@
-package com.api.service.domain.repository;
+package com.hackathon.video.domain.repository;
 
-import com.api.service.domain.entity.Video;
+import com.hackathon.video.domain.entity.Video;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
