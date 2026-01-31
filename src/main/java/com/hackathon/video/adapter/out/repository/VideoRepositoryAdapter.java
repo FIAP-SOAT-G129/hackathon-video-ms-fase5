@@ -17,24 +17,23 @@ import java.util.stream.Collectors;
 public class VideoRepositoryAdapter implements VideoRepositoryPort {
 
     private final JpaVideoRepository jpaVideoRepository;
-    private final VideoMapper videoMapper;
 
     @Override
     public Video save(Video video) {
-        VideoEntity entity = videoMapper.toEntity(video);
+        VideoEntity entity = VideoMapper.toEntity(video);
         VideoEntity savedEntity = jpaVideoRepository.save(entity);
-        return videoMapper.toDomain(savedEntity);
+        return VideoMapper.toDomain(savedEntity);
     }
 
     @Override
     public Optional<Video> findById(UUID id) {
-        return jpaVideoRepository.findById(id).map(videoMapper::toDomain);
+        return jpaVideoRepository.findById(id).map(VideoMapper::toDomain);
     }
 
     @Override
     public List<Video> findByUserId(String userId) {
         return jpaVideoRepository.findByUserId(userId).stream()
-                .map(videoMapper::toDomain)
+                .map(VideoMapper::toDomain)
                 .collect(Collectors.toList());
     }
 

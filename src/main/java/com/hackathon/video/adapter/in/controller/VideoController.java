@@ -2,6 +2,7 @@ package com.hackathon.video.adapter.in.controller;
 
 import com.hackathon.video.adapter.in.dto.UpdateStatusRequestDTO;
 import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
+import com.hackathon.video.adapter.out.mapper.VideoMapper;
 import com.hackathon.video.application.usecase.*;
 import com.hackathon.video.domain.entity.Video;
 import lombok.RequiredArgsConstructor;
@@ -34,19 +35,19 @@ public class VideoController {
             @RequestHeader("X-User-Id") String userId) throws IOException {
         
         Video video = uploadVideoUseCase.execute(userId, title, file.getOriginalFilename(), file.getInputStream());
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapToDTO(video));
+        return ResponseEntity.status(HttpStatus.CREATED).body(VideoMapper.toDTO(video));
     }
 
     @GetMapping
     public ResponseEntity<List<VideoResponseDTO>> list(@RequestHeader("X-User-Id") String userId) {
         List<Video> videos = getVideoUseCase.findByUserId(userId);
-        return ResponseEntity.ok(videos.stream().map(this::mapToDTO).collect(Collectors.toList()));
+        return ResponseEntity.ok(videos.stream().map(VideoMapper::toDTO).collect(Collectors.toList()));
     }
 
     @GetMapping("/{videoId}")
     public ResponseEntity<VideoResponseDTO> getById(@PathVariable UUID videoId) {
         Video video = getVideoUseCase.findById(videoId);
-        return ResponseEntity.ok(mapToDTO(video));
+        return ResponseEntity.ok((VideoMapper.toDTO(video)));
     }
 
     @PatchMapping("/{videoId}/status")
@@ -73,17 +74,5 @@ public class VideoController {
     public ResponseEntity<Void> delete(@PathVariable UUID videoId) {
         deleteVideoUseCase.execute(videoId);
         return ResponseEntity.noContent().build();
-    }
-
-    private VideoResponseDTO mapToDTO(Video video) {
-        VideoResponseDTO dto = new VideoResponseDTO();
-        dto.setId(video.getId());
-        dto.setUserId(video.getUserId());
-        dto.setTitle(video.getTitle());
-        dto.setOriginalFileName(video.getOriginalFileName());
-        dto.setStatus(video.getStatus());
-        dto.setErrorMessage(video.getErrorMessage());
-        dto.setCreatedAt(video.getCreatedAt());
-        return dto;
     }
 }

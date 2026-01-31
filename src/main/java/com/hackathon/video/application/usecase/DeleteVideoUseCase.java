@@ -19,14 +19,9 @@ public class DeleteVideoUseCase {
         Video video = videoRepositoryPort.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
         
-        //Remove do storage
-        if (video.getStoragePath() != null) {
-            videoStoragePort.delete(video.getStoragePath());
-        }
-        if (video.getZipResultPath() != null) {
-            videoStoragePort.delete(video.getZipResultPath());
-        }
-        
+        if (video.getStoragePath() != null) videoStoragePort.delete(video.getStoragePath());
+        if (video.getZipResultPath() != null) videoStoragePort.delete(video.getZipResultPath());
+
         // Remove do banco
         videoRepositoryPort.delete(videoId);
     }

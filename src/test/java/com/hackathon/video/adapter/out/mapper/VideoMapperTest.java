@@ -12,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class VideoMapperTest {
 
-    private final VideoMapper mapper = new VideoMapper();
-
     @Test
     void shouldMapEntityToDomain() {
         UUID id = UUID.randomUUID();
@@ -28,7 +26,7 @@ class VideoMapperTest {
         entity.setCreatedAt(now);
         entity.setUpdatedAt(now);
 
-        Video domain = mapper.toDomain(entity);
+        Video domain = VideoMapper.toDomain(entity);
 
         assertNotNull(domain);
         assertEquals(id, domain.getId());
@@ -47,16 +45,16 @@ class VideoMapperTest {
                 .title("Test Video")
                 .originalFileName("test.mp4")
                 .storagePath("/path/test.mp4")
-                .status(VideoStatus.COMPLETED)
+                .status(VideoStatus.DONE)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
 
-        VideoEntity entity = mapper.toEntity(domain);
+        VideoEntity entity = VideoMapper.toEntity(domain);
 
         assertNotNull(entity);
         assertEquals(id, entity.getId());
         assertEquals("user123", entity.getUserId());
-        assertEquals(VideoStatus.COMPLETED, entity.getStatus());
+        assertEquals(VideoStatus.DONE, entity.getStatus());
     }
 }

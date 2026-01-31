@@ -1,13 +1,14 @@
 package com.hackathon.video.adapter.out.mapper;
 
+import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
 import com.hackathon.video.adapter.out.entity.VideoEntity;
 import com.hackathon.video.domain.entity.Video;
-import org.springframework.stereotype.Component;
 
-@Component
 public class VideoMapper {
 
-    public Video toDomain(VideoEntity entity) {
+   private VideoMapper() {}
+
+   public static Video toDomain(VideoEntity entity) {
         if (entity == null) return null;
         
         return Video.builder()
@@ -24,7 +25,7 @@ public class VideoMapper {
                 .build();
     }
 
-    public VideoEntity toEntity(Video domain) {
+    public static VideoEntity toEntity(Video domain) {
         if (domain == null) return null;
 
         VideoEntity entity = new VideoEntity();
@@ -39,5 +40,17 @@ public class VideoMapper {
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());
         return entity;
+    }
+
+    public static VideoResponseDTO toDTO(Video video) {
+        VideoResponseDTO dto = new VideoResponseDTO();
+        dto.setId(video.getId());
+        dto.setUserId(video.getUserId());
+        dto.setTitle(video.getTitle());
+        dto.setOriginalFileName(video.getOriginalFileName());
+        dto.setStatus(video.getStatus());
+        dto.setErrorMessage(video.getErrorMessage());
+        dto.setCreatedAt(video.getCreatedAt());
+        return dto;
     }
 }
