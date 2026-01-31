@@ -1,4 +1,4 @@
-package com.api.service.domain.repository;
+package com.hackathon.video.domain.repository;
 
 import java.io.InputStream;
 

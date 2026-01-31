@@ -1,9 +1,9 @@
 package com.hackathon.video.adapter.in.controller;
 
-import com.api.service.adapter.in.dto.UpdateStatusRequestDTO;
-import com.api.service.adapter.in.dto.VideoResponseDTO;
-import com.api.service.application.usecase.*;
-import com.api.service.domain.entity.Video;
+import com.hackathon.video.adapter.in.dto.UpdateStatusRequestDTO;
+import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
+import com.hackathon.video.application.usecase.*;
+import com.hackathon.video.domain.entity.Video;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

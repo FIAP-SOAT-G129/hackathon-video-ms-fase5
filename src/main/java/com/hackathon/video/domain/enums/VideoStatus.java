@@ -1,4 +1,4 @@
-package com.api.service.domain.enums;
+package com.hackathon.video.domain.enums;
 
 public enum VideoStatus {
     PENDING,
