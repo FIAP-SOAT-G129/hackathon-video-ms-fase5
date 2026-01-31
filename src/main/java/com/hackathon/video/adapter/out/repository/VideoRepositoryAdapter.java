@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -33,8 +32,7 @@ public class VideoRepositoryAdapter implements VideoRepositoryPort {
     @Override
     public List<Video> findByUserId(String userId) {
         return jpaVideoRepository.findByUserId(userId).stream()
-                .map(VideoMapper::toDomain)
-                .collect(Collectors.toList());
+                .map(VideoMapper::toDomain).toList();
     }
 
     @Override

@@ -20,7 +20,6 @@ class UploadVideoUseCaseTest {
     @Mock private VideoRepositoryPort repository;
     @Mock private VideoStoragePort storage;
     @Mock private VideoMessagePublisherPort publisher;
-    @Mock private NotificationPort notification;
 
     @InjectMocks private UploadVideoUseCase useCase;
 
@@ -33,7 +32,6 @@ class UploadVideoUseCaseTest {
 
         assertNotNull(result);
         assertEquals("user1", result.getUserId());
-        verify(publisher).publish(any());
-        verify(notification).send(anyString(), anyString());
+        verify(publisher).publishVideoProcessRequest(any());
     }
 }

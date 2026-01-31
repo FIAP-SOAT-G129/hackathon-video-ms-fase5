@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/videos")
@@ -41,7 +40,7 @@ public class VideoController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<VideoResponseDTO>> list(@PathVariable String userId) {
         List<Video> videos = getVideoUseCase.findByUserId(userId);
-        return ResponseEntity.ok(videos.stream().map(VideoMapper::toDTO).collect(Collectors.toList()));
+        return ResponseEntity.ok(videos.stream().map(VideoMapper::toDTO).toList());
     }
 
     @GetMapping("/{videoId}")

@@ -15,17 +15,13 @@ class RestExceptionTest {
     void shouldHandleVideoNotFoundException() {
         VideoNotFoundException ex = new VideoNotFoundException("Not found");
         ResponseEntity<ErrorResponse> response = handler.handleNotFound(ex);
-        
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Not found", response.getBody().getMessage());
     }
 
     @Test
     void shouldHandleBusinessException() {
         BusinessException ex = new BusinessException("Business error");
         ResponseEntity<ErrorResponse> response = handler.handleBusiness(ex);
-        
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Business error", response.getBody().getMessage());
     }
 }

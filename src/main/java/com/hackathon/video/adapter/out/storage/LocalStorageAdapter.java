@@ -39,7 +39,6 @@ public class LocalStorageAdapter implements VideoStoragePort {
             log.info("File stored successfully at: {}", filePath);
             return filePath.toString();
         } catch (IOException e) {
-            log.error("Failed to store file", e);
             throw new StorageException("Could not store file: " + e.getMessage());
         }
     }
@@ -53,7 +52,6 @@ public class LocalStorageAdapter implements VideoStoragePort {
             }
             return Files.newInputStream(filePath);
         } catch (IOException e) {
-            log.error("Failed to retrieve file", e);
             throw new StorageException("Could not retrieve file: " + e.getMessage());
         }
     }
@@ -65,7 +63,6 @@ public class LocalStorageAdapter implements VideoStoragePort {
             Files.deleteIfExists(filePath);
             log.info("File deleted successfully: {}", storagePath);
         } catch (IOException e) {
-            log.error("Failed to delete file", e);
             throw new StorageException("Could not delete file: " + e.getMessage());
         }
     }

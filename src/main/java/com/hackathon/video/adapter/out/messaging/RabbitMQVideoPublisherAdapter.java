@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class RabbitMQVideoPublisherAdapter implements VideoMessagePublisherPort 
         
         // Parâmetros de extração conforme especificação (frames/zip)
         Map<String, Object> params = new HashMap<>();
-        params.put("frameInterval", 10); // exemplo: 1 frame a cada 10 seg
+        params.put("frameInterval", Optional.of(10)); // exemplo: 1 frame a cada 10 seg
         params.put("outputFormat", "zip");
         message.put("extractionParams", params);
 

@@ -10,7 +10,7 @@ class VideoStatusTest {
     void shouldHaveAllStatus() {
         assertNotNull(VideoStatus.valueOf("PENDING"));
         assertNotNull(VideoStatus.valueOf("PROCESSING"));
-        assertNotNull(VideoStatus.valueOf("COMPLETED"));
+        assertNotNull(VideoStatus.valueOf("DONE"));
         assertNotNull(VideoStatus.valueOf("ERROR"));
     }
 }
