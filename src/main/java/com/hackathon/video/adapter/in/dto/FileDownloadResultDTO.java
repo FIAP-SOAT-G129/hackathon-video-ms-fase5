@@ -7,7 +7,7 @@ import java.io.InputStream;
 
 @Data
 @Builder
-public class FileDownloadResult {
+public class FileDownloadResultDTO {
     private InputStream inputStream;
     private String fileName;
     private String mimeType;

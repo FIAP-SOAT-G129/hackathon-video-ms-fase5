@@ -1,6 +1,8 @@
 package com.hackathon.video.adapter.in.controller;
 
-import com.hackathon.video.adapter.in.dto.FileDownloadResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
+import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
 import com.hackathon.video.application.usecase.*;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.VideoStatus;
@@ -34,7 +36,7 @@ class VideoControllerTest {
     @MockBean
     private GetVideoUseCase getVideoUseCase;
     @MockBean
-    private UpdateVideoStatusUseCase updateVideoStatusUseCase;
+    private ProcessingResultUseCase updateVideoStatusUseCase;
     @MockBean
     private DownloadVideoUseCase downloadVideoUseCase;
     @MockBean
@@ -95,18 +97,24 @@ class VideoControllerTest {
     }
 
     @Test
-    void shouldUpdateStatus() throws Exception {
+    void shouldUpdateVideo() throws Exception {
         UUID id = UUID.randomUUID();
-        String body = "{\"status\":\"" + VideoStatus.DONE.name() + "\",\"errorMessage\":\"\"}";
+        ProcessingRequestDTO requestDto = ProcessingRequestDTO.builder()
+                .status(VideoStatus.DONE)
+                .zipPath("/path/to/zip/my-video.zip")
+                .build();
 
-        doNothing().when(updateVideoStatusUseCase).execute(any(UUID.class), any(), anyString());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String body = objectMapper.writeValueAsString(requestDto);
 
-        mockMvc.perform(patch("/videos/" + id + "/status")
+        doNothing().when(updateVideoStatusUseCase).execute(any(UUID.class), any(ProcessingRequestDTO.class));
+
+        mockMvc.perform(post("/videos/" + id + "/processing-result")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isNoContent());
 
-        verify(updateVideoStatusUseCase, times(1)).execute(id, VideoStatus.DONE, "");
+        verify(updateVideoStatusUseCase, times(1)).execute(id, requestDto);
     }
 
     @Test
@@ -114,7 +122,7 @@ class VideoControllerTest {
         UUID id = UUID.randomUUID();
         InputStream is = new ByteArrayInputStream("file-content".getBytes());
 
-        FileDownloadResult result = FileDownloadResult.builder()
+        FileDownloadResultDTO result = FileDownloadResultDTO.builder()
                 .inputStream(is)
                 .mimeType("video/mp4")
                 .fileName("video.mp4")
@@ -133,7 +141,7 @@ class VideoControllerTest {
         UUID id = UUID.randomUUID();
         InputStream is = new ByteArrayInputStream("file-content".getBytes());
 
-        FileDownloadResult result = FileDownloadResult.builder()
+        FileDownloadResultDTO result = FileDownloadResultDTO.builder()
                 .inputStream(is)
                 .mimeType("application/zip")
                 .fileName("video.zip")

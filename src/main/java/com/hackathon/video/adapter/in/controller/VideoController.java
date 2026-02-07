@@ -1,7 +1,7 @@
 package com.hackathon.video.adapter.in.controller;
 
-import com.hackathon.video.adapter.in.dto.FileDownloadResult;
-import com.hackathon.video.adapter.in.dto.UpdateStatusRequestDTO;
+import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
+import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
 import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
 import com.hackathon.video.adapter.out.mapper.VideoMapper;
 import com.hackathon.video.application.usecase.*;
@@ -28,7 +28,7 @@ public class VideoController {
 
     private final UploadVideoUseCase uploadVideoUseCase;
     private final GetVideoUseCase getVideoUseCase;
-    private final UpdateVideoStatusUseCase updateVideoStatusUseCase;
+    private final ProcessingResultUseCase updateVideoStatusUseCase;
     private final DownloadVideoUseCase downloadVideoUseCase;
     private final DeleteVideoUseCase deleteVideoUseCase;
 
@@ -65,17 +65,18 @@ public class VideoController {
         return ResponseEntity.ok((VideoMapper.toDTO(video)));
     }
 
-    @PatchMapping("/{videoId}/status")
-    public ResponseEntity<Void> updateStatus(
+    @PostMapping("/{videoId}/processing-result")
+    public ResponseEntity<Void> processingResult(
             @PathVariable UUID videoId,
-            @RequestBody UpdateStatusRequestDTO request) {
-        updateVideoStatusUseCase.execute(videoId, request.getStatus(), request.getErrorMessage());
+            @RequestBody ProcessingRequestDTO request)
+    {
+        updateVideoStatusUseCase.execute(videoId, request);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{videoId}/download")
     public ResponseEntity<Resource> downloadVideo(@PathVariable UUID videoId) {
-        FileDownloadResult result = downloadVideoUseCase.downloadVideo(videoId);
+        FileDownloadResultDTO result = downloadVideoUseCase.downloadVideo(videoId);
 
         InputStreamResource resource = new InputStreamResource(result.getInputStream());
 
@@ -87,7 +88,7 @@ public class VideoController {
 
     @GetMapping("/{videoId}/zip")
     public ResponseEntity<Resource> downloadZip(@PathVariable UUID videoId) {
-        FileDownloadResult result = downloadVideoUseCase.downloadZip(videoId);
+        FileDownloadResultDTO result = downloadVideoUseCase.downloadZip(videoId);
 
         InputStreamResource resource = new InputStreamResource(result.getInputStream());
 

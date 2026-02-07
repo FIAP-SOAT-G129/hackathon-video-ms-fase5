@@ -4,8 +4,8 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 500MB
-      max-request-size: 500MB
+      max-file-size: ${MAX_FILE_SIZE:500MB}
+      max-request-size: ${MAX_REQUEST_SIZE:500MB}
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:video_db}
@@ -38,8 +38,8 @@ spring:
 
 app:
   storage:
-    videos-path: /tmp/videos
-    zips-path: /tmp/zips
+    videos-path: ${VIDEOS_STORAGE_PATH:/tmp/videos}
+    zips-path: ${ZIPS_STORAGE_PATH:/tmp/zips}
 
 server:
   port: ${APP_PORT:8081}
