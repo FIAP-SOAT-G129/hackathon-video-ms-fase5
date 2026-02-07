@@ -3,7 +3,7 @@ package com.hackathon.video.adapter.in.controller;
 import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
 import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
 import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
-import com.hackathon.video.adapter.out.mapper/VideoMapper;
+import com.hackathon.video.adapter.out.mapper.VideoMapper;
 import com.hackathon.video.application.usecase.*;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.SupportedVideoFormat;
@@ -43,14 +43,6 @@ public class VideoController {
             @RequestPart("title") String title,
             @RequestPart("file") MultipartFile file
     ) throws IOException {
-        if (file == null || file.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        if (!SupportedVideoFormat.isSupported(file.getContentType())) {
-            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
-        }
-
         Video video = uploadVideoUseCase.execute(userId, title, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(VideoMapper.toDTO(video));
     }
@@ -70,8 +62,10 @@ public class VideoController {
     @PutMapping("/{videoId}")
     public ResponseEntity<VideoResponseDTO> update(
             @PathVariable UUID videoId,
-            @RequestParam("title") String title) {
-        Video video = updateVideoUseCase.execute(videoId, title);
+            @RequestPart("title") String title,
+            @RequestPart("file") MultipartFile file
+    ) throws IOException {
+        Video video = updateVideoUseCase.execute(videoId, title, file);
         return ResponseEntity.ok(VideoMapper.toDTO(video));
     }
 

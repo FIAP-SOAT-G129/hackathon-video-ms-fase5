@@ -44,13 +44,13 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleMaxSize(MaxUploadSizeExceededException ex) {
-        ErrorResponse error = new ErrorResponse("File size exceeds limit");
+        ErrorResponse error = new ErrorResponse("File size exceeds limit" + ex.getMessage());
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(error);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
-        ErrorResponse error = new ErrorResponse("An unexpected error occurred");
+        ErrorResponse error = new ErrorResponse("An unexpected error occurred" + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

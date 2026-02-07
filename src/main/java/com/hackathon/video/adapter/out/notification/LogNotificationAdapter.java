@@ -12,7 +12,7 @@ public class LogNotificationAdapter implements NotificationPort {
     private static final Logger log = LoggerFactory.getLogger(LogNotificationAdapter.class);
 
     @Override
-    public void send(String userId, String message) {
-        log.info("[NOTIFICATION] To User: {} | Message: {}", userId, message);
+    public void send(String email, String message) {
+        log.info("[NOTIFICATION] To User email: {} | Message: {}", email, message);
     }
 }

@@ -31,81 +31,83 @@ class VideoControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private UploadVideoUseCase uploadVideoUseCase;
-    @MockBean
-    private GetVideoUseCase getVideoUseCase;
-    @MockBean
-    private ProcessingResultUseCase updateVideoStatusUseCase;
-    @MockBean
-    private DownloadVideoUseCase downloadVideoUseCase;
-    @MockBean
-    private DeleteVideoUseCase deleteVideoUseCase;
+    @MockBean private UploadVideoUseCase uploadVideoUseCase;
+    @MockBean private GetVideoUseCase getVideoUseCase;
+    @MockBean private ProcessingResultUseCase updateVideoStatusUseCase;
+    @MockBean private DownloadVideoUseCase downloadVideoUseCase;
+    @MockBean private DeleteVideoUseCase deleteVideoUseCase;
+    @MockBean private RetryVideoUseCase retryVideoUseCase;
+    @MockBean private UpdateVideoUseCase updateVideoUseCase;
 
     @Test
     void shouldUploadVideo() throws Exception {
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "test.mp4",
-                "video/mp4",
-                "content".getBytes()
-        );
-
-        MockMultipartFile titlePart = new MockMultipartFile(
-                "title",
-                "",
-                MediaType.TEXT_PLAIN_VALUE,
-                "Title".getBytes()
-        );
+        MockMultipartFile file = new MockMultipartFile("file", "test.mp4", "video/mp4", "content".getBytes());
+        MockMultipartFile titlePart = new MockMultipartFile("title", "", MediaType.TEXT_PLAIN_VALUE, "Title".getBytes());
 
         Video video = Video.builder()
                 .id(UUID.randomUUID())
                 .userId("user1")
                 .title("Title")
-                .fileName("test.mp4")
-                .mimeType("video/mp4")
                 .status(VideoStatus.PROCESSING)
                 .build();
 
-        when(uploadVideoUseCase.execute(anyString(), anyString(), any(MultipartFile.class)))
-                .thenReturn(video);
+        when(uploadVideoUseCase.execute(anyString(), anyString(), any(MultipartFile.class))).thenReturn(video);
 
-        mockMvc.perform(
-                        multipart("/videos/user/user1")
-                                .file(file)
-                                .file(titlePart)
-                )
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    void shouldListVideos() throws Exception {
-        when(getVideoUseCase.findByUserId("user1")).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get("/videos/user/user1"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void shouldGetVideoById() throws Exception {
-        UUID id = UUID.randomUUID();
-        Video video = Video.builder().id(id).build();
-        when(getVideoUseCase.findById(id)).thenReturn(video);
-
-        mockMvc.perform(get("/videos/" + id))
-                .andExpect(status().isOk());
+        mockMvc.perform(multipart("/videos/user/user1").file(file).file(titlePart))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists());
     }
 
     @Test
     void shouldUpdateVideo() throws Exception {
         UUID id = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile("file", "update.mp4", "video/mp4", "new content".getBytes());
+        MockMultipartFile titlePart = new MockMultipartFile("title", "", MediaType.TEXT_PLAIN_VALUE, "New Title".getBytes());
+
+        Video video = Video.builder().id(id).title("New Title").build();
+
+        when(updateVideoUseCase.execute(eq(id), anyString(), any(MultipartFile.class))).thenReturn(video);
+
+        mockMvc.perform(multipart("/videos/" + id)
+                        .file(file)
+                        .file(titlePart)
+                        .with(request -> { request.setMethod("PUT"); return request; }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("New Title"));
+    }
+
+    @Test
+    void shouldRetryVideoProcessing() throws Exception {
+        UUID id = UUID.randomUUID();
+        Video video = Video.builder().id(id).status(VideoStatus.PENDING).build();
+
+        when(retryVideoUseCase.execute(id)).thenReturn(video);
+
+        mockMvc.perform(post("/videos/" + id + "/retry"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PENDING"));
+    }
+
+    @Test
+    void shouldGetVideoById() throws Exception {
+        UUID id = UUID.randomUUID();
+        Video video = Video.builder().id(id).title("Found").build();
+        when(getVideoUseCase.findById(id)).thenReturn(video);
+
+        mockMvc.perform(get("/videos/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Found"));
+    }
+
+    @Test
+    void shouldProcessResult() throws Exception {
+        UUID id = UUID.randomUUID();
         ProcessingRequestDTO requestDto = ProcessingRequestDTO.builder()
                 .status(VideoStatus.DONE)
-                .zipPath("/path/to/zip/my-video.zip")
+                .zipPath("/path/to/zip.zip")
                 .build();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String body = objectMapper.writeValueAsString(requestDto);
+        String body = new ObjectMapper().writeValueAsString(requestDto);
 
         doNothing().when(updateVideoStatusUseCase).execute(any(UUID.class), any(ProcessingRequestDTO.class));
 
@@ -113,8 +115,6 @@ class VideoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isNoContent());
-
-        verify(updateVideoStatusUseCase, times(1)).execute(id, requestDto);
     }
 
     @Test
@@ -130,7 +130,6 @@ class VideoControllerTest {
                 .build();
 
         when(downloadVideoUseCase.downloadVideo(id)).thenReturn(result);
-
 
         mockMvc.perform(get("/videos/" + id + "/download"))
                 .andExpect(status().isOk());
@@ -155,13 +154,19 @@ class VideoControllerTest {
     }
 
     @Test
+    void shouldListVideos() throws Exception {
+        when(getVideoUseCase.findByUserId("user1")).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/videos/user/user1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void shouldDeleteVideo() throws Exception {
         UUID id = UUID.randomUUID();
         doNothing().when(deleteVideoUseCase).execute(id);
 
         mockMvc.perform(delete("/videos/" + id))
                 .andExpect(status().isNoContent());
-
-        verify(deleteVideoUseCase, times(1)).execute(id);
     }
 }

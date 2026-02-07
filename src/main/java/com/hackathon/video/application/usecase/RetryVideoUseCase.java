@@ -5,6 +5,7 @@ import com.hackathon.video.domain.enums.VideoStatus;
 import com.hackathon.video.domain.repository.VideoMessagePublisherPort;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
 import com.hackathon.video.exception.BusinessException;
+import com.hackathon.video.exception.VideoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +19,17 @@ public class RetryVideoUseCase {
 
     public Video execute(UUID videoId) {
         Video video = repository.findById(videoId)
-                .orElseThrow(() -> new BusinessException("Video not found"));
+                .orElseThrow(() -> new VideoNotFoundException("Video not found with id: " + videoId));
 
         if (video.getStatus() != VideoStatus.ERROR) {
             throw new BusinessException("Only videos with ERROR status can be retried");
         }
 
-        video.updateStatus(VideoStatus.PENDING);
+        video.setStatus(VideoStatus.PENDING);
         video.setErrorMessage(null);
         Video savedVideo = repository.save(video);
-        publisher.publish(savedVideo);
+
+        publisher.publishVideoProcessRequest(savedVideo);
         return savedVideo;
     }
 }

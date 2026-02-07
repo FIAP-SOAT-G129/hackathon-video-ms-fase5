@@ -35,13 +35,13 @@ class RetryVideoUseCaseTest {
 
         assertEquals(VideoStatus.PENDING, result.getStatus());
         assertNull(result.getErrorMessage());
-        verify(publisher).publish(any());
+        verify(publisher).publishVideoProcessRequest(any());
     }
 
     @Test
     void shouldThrowExceptionWhenNotErrorStatus() {
         UUID id = UUID.randomUUID();
-        Video video = Video.builder().id(id).status(VideoStatus.COMPLETED).build();
+        Video video = Video.builder().id(id).status(VideoStatus.DONE).build();
         when(repository.findById(id)).thenReturn(Optional.of(video));
 
         assertThrows(BusinessException.class, () -> useCase.execute(id));

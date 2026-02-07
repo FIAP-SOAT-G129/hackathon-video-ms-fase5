@@ -53,7 +53,7 @@ class ProcessingResultUseCaseTest {
 
         verify(notificationPort).send(
                 eq(video.getUserId()),
-                eq("Seu vídeo " + video.getTitle() + " foi processado com sucesso!")
+                eq("Seu vídeo " + video.getTitle() + " foi processado com sucesso e já está disponível para download!")
         );
 
         verify(notificationPort, never()).send(anyString(), contains("Erro"));
