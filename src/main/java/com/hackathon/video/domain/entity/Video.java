@@ -1,11 +1,9 @@
 package com.hackathon.video.domain.entity;
 
+import com.hackathon.video.domain.enums.SupportedVideoFormat;
 import com.hackathon.video.domain.enums.VideoStatus;
 import com.hackathon.video.exception.BusinessException;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,13 +16,22 @@ public class Video {
     private UUID id;
     private String userId;
     private String title;
-    private String originalFileName;
+    private String fileName;
+    @Setter(AccessLevel.NONE)
+    private String mimeType;
     private String storagePath;
-    private String zipResultPath;
+    private String zipPath;
     private VideoStatus status;
     private String errorMessage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public static class VideoBuilder {
+        public VideoBuilder mimeType(String mimeType) {
+            this.mimeType = SupportedVideoFormat.fromMimeType(mimeType).getMimeType();
+            return this;
+        }
+    }
 
     public void validate() {
         if (userId == null || userId.isBlank()) {
@@ -33,12 +40,25 @@ public class Video {
         if (title == null || title.isBlank()) {
             throw new BusinessException("Title is required");
         }
-        if (originalFileName == null || originalFileName.isBlank()) {
-            throw new BusinessException("Original file name is required");
+        if (fileName == null || fileName.isBlank()) {
+            throw new BusinessException("File name is required");
         }
+
+        SupportedVideoFormat.fromMimeType(this.mimeType);
     }
 
-    public void updateStatus(VideoStatus newStatus) {
+    public void setMimeType(String mimeType) {
+        this.mimeType = SupportedVideoFormat.fromMimeType(mimeType).getMimeType();
+    }
+
+    public void setStoragePath(String storagePath) {
+        SupportedVideoFormat.fromMimeType(this.mimeType);
+
+        this.storagePath = storagePath;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setStatus(VideoStatus newStatus) {
         this.status = newStatus;
         this.updatedAt = LocalDateTime.now();
     }
@@ -47,5 +67,9 @@ public class Video {
         this.status = VideoStatus.ERROR;
         this.errorMessage = errorMessage;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public String getExtension() {
+        return SupportedVideoFormat.fromMimeType(this.mimeType).getExtension();
     }
 }

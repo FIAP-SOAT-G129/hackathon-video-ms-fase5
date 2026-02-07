@@ -20,7 +20,8 @@ class VideoMapperTest {
         entity.setId(id);
         entity.setUserId("user123");
         entity.setTitle("Test Video");
-        entity.setOriginalFileName("test.mp4");
+        entity.setFileName("test.mp4");
+        entity.setMimeType("video/mp4");
         entity.setStoragePath("/path/test.mp4");
         entity.setStatus(VideoStatus.PENDING);
         entity.setCreatedAt(now);
@@ -43,7 +44,8 @@ class VideoMapperTest {
                 .id(id)
                 .userId("user123")
                 .title("Test Video")
-                .originalFileName("test.mp4")
+                .fileName("test.mp4")
+                .mimeType("video/mp4")
                 .storagePath("/path/test.mp4")
                 .status(VideoStatus.DONE)
                 .createdAt(now)
