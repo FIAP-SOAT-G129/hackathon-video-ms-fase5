@@ -3,7 +3,7 @@ package com.hackathon.video.adapter.in.controller;
 import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
 import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
 import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
-import com.hackathon.video.adapter.out.mapper.VideoMapper;
+import com.hackathon.video.adapter.out.mapper/VideoMapper;
 import com.hackathon.video.application.usecase.*;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.SupportedVideoFormat;
@@ -31,6 +31,8 @@ public class VideoController {
     private final ProcessingResultUseCase updateVideoStatusUseCase;
     private final DownloadVideoUseCase downloadVideoUseCase;
     private final DeleteVideoUseCase deleteVideoUseCase;
+    private final RetryVideoUseCase retryVideoUseCase;
+    private final UpdateVideoUseCase updateVideoUseCase;
 
     @PostMapping(
             path = "/user/{userId}",
@@ -63,6 +65,20 @@ public class VideoController {
     public ResponseEntity<VideoResponseDTO> getById(@PathVariable UUID videoId) {
         Video video = getVideoUseCase.findById(videoId);
         return ResponseEntity.ok((VideoMapper.toDTO(video)));
+    }
+
+    @PutMapping("/{videoId}")
+    public ResponseEntity<VideoResponseDTO> update(
+            @PathVariable UUID videoId,
+            @RequestParam("title") String title) {
+        Video video = updateVideoUseCase.execute(videoId, title);
+        return ResponseEntity.ok(VideoMapper.toDTO(video));
+    }
+
+    @PostMapping("/{videoId}/retry")
+    public ResponseEntity<VideoResponseDTO> retry(@PathVariable UUID videoId) {
+        Video video = retryVideoUseCase.execute(videoId);
+        return ResponseEntity.ok(VideoMapper.toDTO(video));
     }
 
     @PostMapping("/{videoId}/processing-result")
