@@ -1,9 +1,10 @@
 package com.hackathon.video.application.usecase;
 
 import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
-import com.hackathon.video.domain.repository.NotificationPort;
+import com.hackathon.video.application.dto.NotificationEvent;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.VideoStatus;
+import com.hackathon.video.domain.repository.NotificationPublisherPort;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
 import com.hackathon.video.exception.VideoNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.UUID;
 public class ProcessingResultUseCase {
 
     private final VideoRepositoryPort videoRepositoryPort;
-    private final NotificationPort notificationPort;
+    private final NotificationPublisherPort notificationPublisherPort;
 
     public void execute(UUID videoId, ProcessingRequestDTO request) {
         Video video = videoRepositoryPort.findById(videoId)
@@ -32,10 +33,18 @@ public class ProcessingResultUseCase {
 
         videoRepositoryPort.save(video);
         
+        String message = "";
         if (request.getStatus() == VideoStatus.DONE) {
-            notificationPort.send(video.getUserId(), "Seu vídeo " + video.getTitle() + " foi processado com sucesso e já está disponível para download!");
+            message = "Seu vídeo " + video.getTitle() + " foi processado com sucesso e já está disponível para download!";
         } else if (request.getStatus() == VideoStatus.ERROR) {
-            notificationPort.send(video.getUserId(), "Erro ao processar vídeo " + video.getTitle() + ": " + request.getErrorMessage());
+            message = "Erro ao processar vídeo " + video.getTitle() + ": " + request.getErrorMessage();
+        }
+
+        if (!message.isEmpty()) {
+            notificationPublisherPort.publish(NotificationEvent.builder()
+                    .userId(video.getUserId())
+                    .message(message)
+                    .build());
         }
     }
 }
