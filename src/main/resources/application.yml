@@ -36,6 +36,18 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:guest}
+    password: ${MAIL_PASSWORD:guest}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 app:
   storage:
     videos-path: ${VIDEOS_STORAGE_PATH:/tmp/videos}

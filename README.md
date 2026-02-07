@@ -122,6 +122,11 @@ DB_NAME=video_db
 DB_USER=user
 DB_PASSWORD=password
 
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=guest
+MAIL_PASSWORD=guest
+
 RABBITMQ_HOST=rabbitmq
 RABBITMQ_PORT=5672
 

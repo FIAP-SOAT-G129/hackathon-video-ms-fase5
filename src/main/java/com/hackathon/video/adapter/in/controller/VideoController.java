@@ -31,6 +31,8 @@ public class VideoController {
     private final ProcessingResultUseCase updateVideoStatusUseCase;
     private final DownloadVideoUseCase downloadVideoUseCase;
     private final DeleteVideoUseCase deleteVideoUseCase;
+    private final RetryVideoUseCase retryVideoUseCase;
+    private final UpdateVideoUseCase updateVideoUseCase;
 
     @PostMapping(
             path = "/user/{userId}",
@@ -41,14 +43,6 @@ public class VideoController {
             @RequestPart("title") String title,
             @RequestPart("file") MultipartFile file
     ) throws IOException {
-        if (file == null || file.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        if (!SupportedVideoFormat.isSupported(file.getContentType())) {
-            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
-        }
-
         Video video = uploadVideoUseCase.execute(userId, title, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(VideoMapper.toDTO(video));
     }
@@ -63,6 +57,22 @@ public class VideoController {
     public ResponseEntity<VideoResponseDTO> getById(@PathVariable UUID videoId) {
         Video video = getVideoUseCase.findById(videoId);
         return ResponseEntity.ok((VideoMapper.toDTO(video)));
+    }
+
+    @PutMapping("/{videoId}")
+    public ResponseEntity<VideoResponseDTO> update(
+            @PathVariable UUID videoId,
+            @RequestPart("title") String title,
+            @RequestPart("file") MultipartFile file
+    ) throws IOException {
+        Video video = updateVideoUseCase.execute(videoId, title, file);
+        return ResponseEntity.ok(VideoMapper.toDTO(video));
+    }
+
+    @PostMapping("/{videoId}/retry")
+    public ResponseEntity<VideoResponseDTO> retry(@PathVariable UUID videoId) {
+        Video video = retryVideoUseCase.execute(videoId);
+        return ResponseEntity.ok(VideoMapper.toDTO(video));
     }
 
     @PostMapping("/{videoId}/processing-result")

@@ -33,7 +33,7 @@ public class ProcessingResultUseCase {
         videoRepositoryPort.save(video);
         
         if (request.getStatus() == VideoStatus.DONE) {
-            notificationPort.send(video.getUserId(), "Seu vídeo " + video.getTitle() + " foi processado com sucesso!");
+            notificationPort.send(video.getUserId(), "Seu vídeo " + video.getTitle() + " foi processado com sucesso e já está disponível para download!");
         } else if (request.getStatus() == VideoStatus.ERROR) {
             notificationPort.send(video.getUserId(), "Erro ao processar vídeo " + video.getTitle() + ": " + request.getErrorMessage());
         }
