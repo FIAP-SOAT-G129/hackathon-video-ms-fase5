@@ -19,15 +19,7 @@ public class RestExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
         ErrorResponse error = new ErrorResponse(ex.getMessage());
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        
-        if (ex.getMessage().contains("not found")) {
-            status = HttpStatus.NOT_FOUND;
-        } else if (ex.getMessage().contains("Only videos with ERROR status")) {
-            status = HttpStatus.CONFLICT;
-        }
-        
-        return ResponseEntity.status(status).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(StorageException.class)
