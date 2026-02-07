@@ -6,5 +6,6 @@ import lombok.Data;
 @Data
 public class UpdateStatusRequestDTO {
     private VideoStatus status;
+    private String zipPath;
     private String errorMessage;
 }

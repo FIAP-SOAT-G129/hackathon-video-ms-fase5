@@ -1,14 +1,16 @@
 package com.hackathon.video.application.usecase;
 
 import com.hackathon.video.domain.entity.Video;
+import com.hackathon.video.domain.enums.StorageType;
 import com.hackathon.video.domain.enums.VideoStatus;
 import com.hackathon.video.domain.repository.VideoMessagePublisherPort;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
 import com.hackathon.video.domain.repository.VideoStoragePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -20,19 +22,21 @@ public class UploadVideoUseCase {
     private final VideoStoragePort videoStoragePort;
     private final VideoMessagePublisherPort messagePublisherPort;
 
-    public Video execute(String userId, String title, String fileName, InputStream content) {
-        String storagePath = videoStoragePort.store(content, fileName);
-
+    public Video execute(String userId, String title, MultipartFile file) throws IOException {
         Video video = Video.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .title(title)
-                .originalFileName(fileName)
-                .storagePath(storagePath)
+                .fileName(file.getOriginalFilename())
+                .mimeType(file.getContentType())
                 .status(VideoStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+
+        String storagePath = videoStoragePort.store(video.getId(), file.getInputStream(), video.getExtension());
+
+        video.setStoragePath(storagePath);
 
         Video savedVideo = videoRepositoryPort.save(video);
         messagePublisherPort.publishVideoProcessRequest(savedVideo);

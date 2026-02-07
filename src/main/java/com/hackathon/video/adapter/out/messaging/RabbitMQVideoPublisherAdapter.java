@@ -30,9 +30,8 @@ public class RabbitMQVideoPublisherAdapter implements VideoMessagePublisherPort 
         message.put("userId", video.getUserId());
         message.put("inputVideoPath", video.getStoragePath());
         
-        // Parâmetros de extração conforme especificação (frames/zip)
         Map<String, Object> params = new HashMap<>();
-        params.put("frameInterval", Optional.of(10)); // exemplo: 1 frame a cada 10 seg
+        params.put("frameInterval", Optional.of(10));
         params.put("outputFormat", "zip");
         message.put("extractionParams", params);
 

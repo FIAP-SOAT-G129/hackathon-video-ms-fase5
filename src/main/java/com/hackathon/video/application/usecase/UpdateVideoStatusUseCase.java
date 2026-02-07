@@ -23,7 +23,7 @@ public class UpdateVideoStatusUseCase {
         if (status == VideoStatus.ERROR) {
             video.markAsError(errorMessage);
         } else {
-            video.updateStatus(status);
+            video.setStatus(status);
         }
 
         videoRepositoryPort.save(video);

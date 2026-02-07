@@ -1,11 +1,16 @@
 spring:
   application:
     name: hackathon-video-ms
-  
+
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:video_db}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:suPfIh-zifpoC}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -30,6 +35,11 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+
+app:
+  storage:
+    videos-path: /tmp/videos
+    zips-path: /tmp/zips
 
 server:
   port: ${APP_PORT:8081}

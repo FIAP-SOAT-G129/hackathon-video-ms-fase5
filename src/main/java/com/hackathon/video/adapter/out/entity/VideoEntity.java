@@ -21,12 +21,15 @@ public class VideoEntity {
     private String title;
 
     @Column(nullable = false)
-    private String originalFileName;
+    private String fileName;
+
+    @Column(nullable = false)
+    private String mimeType;
 
     @Column(nullable = false)
     private String storagePath;
 
-    private String zipResultPath;
+    private String zipPath;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

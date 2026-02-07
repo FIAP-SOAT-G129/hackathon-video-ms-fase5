@@ -1,6 +1,7 @@
 package com.hackathon.video.application.usecase;
 
 import com.hackathon.video.domain.entity.Video;
+import com.hackathon.video.domain.enums.StorageType;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
 import com.hackathon.video.domain.repository.VideoStoragePort;
 import com.hackathon.video.exception.VideoNotFoundException;
@@ -20,10 +21,9 @@ public class DeleteVideoUseCase {
         Video video = videoRepositoryPort.findById(videoId)
                 .orElseThrow(() -> new VideoNotFoundException("Video not found with id: " + videoId));
         
-        if (video.getStoragePath() != null) videoStoragePort.delete(video.getStoragePath());
-        if (video.getZipResultPath() != null) videoStoragePort.delete(video.getZipResultPath());
+        if (video.getStoragePath() != null) videoStoragePort.delete(StorageType.VIDEO, video.getStoragePath());
+        if (video.getZipPath() != null) videoStoragePort.delete(StorageType.ZIP, video.getZipPath());
 
-        // Remove do banco
         videoRepositoryPort.delete(videoId);
     }
 }
