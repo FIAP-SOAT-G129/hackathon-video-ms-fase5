@@ -13,6 +13,9 @@ public class RabbitMQConfig {
     public static final String EXCHANGE_KEY = "video.processing.exchange";
     public static final String ROUTING_KEY = "video.processing.request";
     public static final String DLQ = "video.processing.dlq";
+    public static final String NOTIFICATION_QUEUE = "video.notification.queue";
+    public static final String NOTIFICATION_EXCHANGE = "video.notification.exchange";
+    public static final String NOTIFICATION_ROUTING_KEY = "video.notification.send";
 
     @Bean
     public Queue queue() {
@@ -35,6 +38,21 @@ public class RabbitMQConfig {
     @Bean
     public Binding binding(Queue queue, TopicExchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue notificationQueue() {
+        return new Queue(NOTIFICATION_QUEUE);
+    }
+
+    @Bean
+    public TopicExchange notificationExchange() {
+        return new TopicExchange(NOTIFICATION_EXCHANGE);
+    }
+
+    @Bean
+    public Binding notificationBinding(Queue notificationQueue, TopicExchange notificationExchange) {
+        return BindingBuilder.bind(notificationQueue).to(notificationExchange).with(NOTIFICATION_ROUTING_KEY);
     }
 
     @Bean
