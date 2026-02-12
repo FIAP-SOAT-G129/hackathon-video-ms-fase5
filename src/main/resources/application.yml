@@ -53,5 +53,9 @@ app:
     videos-path: ${VIDEOS_STORAGE_PATH:/tmp/videos}
     zips-path: ${ZIPS_STORAGE_PATH:/tmp/zips}
 
+services:
+  auth:
+    url: ${AUTH_URL:http://localhost:8080}
+
 server:
   port: ${APP_PORT:8081}

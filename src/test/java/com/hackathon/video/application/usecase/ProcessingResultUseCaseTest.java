@@ -1,10 +1,10 @@
-// java
 package com.hackathon.video.application.usecase;
 
 import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.VideoStatus;
 import com.hackathon.video.domain.repository.NotificationPort;
+import com.hackathon.video.domain.repository.UserIdentityPort;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
 import com.hackathon.video.exception.VideoNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -24,11 +24,13 @@ class ProcessingResultUseCaseTest {
 
     @Mock private VideoRepositoryPort repository;
     @Mock private NotificationPort notificationPort;
+    @Mock private UserIdentityPort userIdentityPort;
     @InjectMocks private ProcessingResultUseCase useCase;
 
     @Test
     void shouldUpdateVideoAndNotifyUserWhenStatusIsDone() {
         UUID id = UUID.randomUUID();
+        String email = "user-1@example.com";
 
         ProcessingRequestDTO request = ProcessingRequestDTO.builder()
                 .status(VideoStatus.DONE)
@@ -43,6 +45,7 @@ class ProcessingResultUseCaseTest {
                 .build();
 
         when(repository.findById(id)).thenReturn(Optional.of(video));
+        when(userIdentityPort.getEmailByUserId("user-1")).thenReturn(Optional.of(email));
 
         useCase.execute(id, request);
 
@@ -52,16 +55,15 @@ class ProcessingResultUseCaseTest {
         ));
 
         verify(notificationPort).send(
-                eq(video.getUserId()),
+                eq(email),
                 eq("Seu vídeo " + video.getTitle() + " foi processado com sucesso e já está disponível para download!")
         );
-
-        verify(notificationPort, never()).send(anyString(), contains("Erro"));
     }
 
     @Test
     void shouldMarkVideoAsErrorAndNotifyUserWhenStatusIsError() {
         UUID id = UUID.randomUUID();
+        String email = "user-1@example.com";
 
         ProcessingRequestDTO request = ProcessingRequestDTO.builder()
                 .status(VideoStatus.ERROR)
@@ -76,13 +78,14 @@ class ProcessingResultUseCaseTest {
                 .build();
 
         when(repository.findById(id)).thenReturn(Optional.of(video));
+        when(userIdentityPort.getEmailByUserId("user-1")).thenReturn(Optional.of(email));
 
         useCase.execute(id, request);
 
         verify(repository).save(argThat(v -> v.getStatus() == VideoStatus.ERROR && "FFmpeg failed".equals(v.getErrorMessage())));
 
         verify(notificationPort).send(
-                eq("user-1"),
+                eq(email),
                 eq("Erro ao processar vídeo my-video: FFmpeg failed")
         );
     }

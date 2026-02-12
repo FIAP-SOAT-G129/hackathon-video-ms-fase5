@@ -1,12 +1,10 @@
 package com.hackathon.video.adapter.in.controller;
 
 import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
-import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
 import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
 import com.hackathon.video.adapter.out.mapper.VideoMapper;
 import com.hackathon.video.application.usecase.*;
 import com.hackathon.video.domain.entity.Video;
-import com.hackathon.video.domain.enums.SupportedVideoFormat;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -28,7 +26,6 @@ public class VideoController {
 
     private final UploadVideoUseCase uploadVideoUseCase;
     private final GetVideoUseCase getVideoUseCase;
-    private final ProcessingResultUseCase updateVideoStatusUseCase;
     private final DownloadVideoUseCase downloadVideoUseCase;
     private final DeleteVideoUseCase deleteVideoUseCase;
     private final RetryVideoUseCase retryVideoUseCase;
@@ -73,15 +70,6 @@ public class VideoController {
     public ResponseEntity<VideoResponseDTO> retry(@PathVariable UUID videoId) {
         Video video = retryVideoUseCase.execute(videoId);
         return ResponseEntity.ok(VideoMapper.toDTO(video));
-    }
-
-    @PostMapping("/{videoId}/processing-result")
-    public ResponseEntity<Void> processingResult(
-            @PathVariable UUID videoId,
-            @RequestBody ProcessingRequestDTO request)
-    {
-        updateVideoStatusUseCase.execute(videoId, request);
-        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{videoId}/download")

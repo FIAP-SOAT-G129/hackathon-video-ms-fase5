@@ -1,23 +1,26 @@
 package com.hackathon.video.application.usecase;
 
 import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
-import com.hackathon.video.application.dto.NotificationEvent;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.VideoStatus;
-import com.hackathon.video.domain.repository.NotificationPublisherPort;
+import com.hackathon.video.domain.repository.NotificationPort;
+import com.hackathon.video.domain.repository.UserIdentityPort;
 import com.hackathon.video.domain.repository.VideoRepositoryPort;
 import com.hackathon.video.exception.VideoNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProcessingResultUseCase {
 
     private final VideoRepositoryPort videoRepositoryPort;
-    private final NotificationPublisherPort notificationPublisherPort;
+    private final UserIdentityPort userIdentityPort;
+    private final NotificationPort notificationPort;
 
     public void execute(UUID videoId, ProcessingRequestDTO request) {
         Video video = videoRepositoryPort.findById(videoId)
@@ -41,10 +44,17 @@ public class ProcessingResultUseCase {
         }
 
         if (!message.isEmpty()) {
-            notificationPublisherPort.publish(NotificationEvent.builder()
-                    .userId(video.getUserId())
-                    .message(message)
-                    .build());
+            sendNotification(video.getUserId(), message);
         }
+    }
+
+    private void sendNotification(String userId, String message) {
+        userIdentityPort.getEmailByUserId(userId).ifPresentOrElse(
+            email -> {
+                log.info("Sending notification to email: {}", email);
+                notificationPort.send(email, message);
+            },
+            () -> log.error("Could not send notification. Email not found for user: {}", userId)
+        );
     }
 }
