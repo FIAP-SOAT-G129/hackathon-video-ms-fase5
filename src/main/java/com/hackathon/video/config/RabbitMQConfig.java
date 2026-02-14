@@ -13,6 +13,7 @@ public class RabbitMQConfig {
     public static final String EXCHANGE_KEY = "video.processing.exchange";
     public static final String ROUTING_KEY = "video.processing.request";
     public static final String DLQ = "video.processing.dlq";
+    public static final String RESULT_QUEUE_KEY = "video.processing.result.queue";
 
     @Bean
     public Queue queue() {
@@ -25,6 +26,11 @@ public class RabbitMQConfig {
     @Bean
     public Queue deadLetterQueue() {
         return new Queue(DLQ);
+    }
+
+    @Bean
+    public Queue resultQueue() {
+        return new Queue(RESULT_QUEUE_KEY);
     }
 
     @Bean
