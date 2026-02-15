@@ -36,4 +36,37 @@ class LocalStorageAdapterTest {
         assertNotNull(retrieved);
         assertEquals("hello", new String(retrieved.readAllBytes()));
     }
+
+    @Test
+    void shouldThrowExceptionWhenStoreFails() {
+        ReflectionTestUtils.setField(adapter, "storageVideosDir", "/tmp");
+        UUID videoId = UUID.randomUUID();
+        InputStream is = new ByteArrayInputStream("hello".getBytes());
+
+        assertThrows(com.hackathon.video.exception.StorageException.class, () ->
+                adapter.store(videoId, is, "/../../etc/passwd")
+        );
+    }
+
+    @Test
+    void shouldThrowExceptionWhenInputStreamIsNull() {
+        assertThrows(com.hackathon.video.exception.StorageException.class, () ->
+                adapter.store(UUID.randomUUID(), null, ".mp4")
+        );
+    }
+
+    @Test
+    void testResolveInternalPathSecurityViolation() {
+        ReflectionTestUtils.setField(adapter, "storageVideosDir", tempDir.toString());
+        assertThrows(com.hackathon.video.exception.StorageException.class, () -> adapter.retrieve(StorageType.VIDEO, "../secret.txt"));
+    }
+
+    @Test
+    void shouldDeleteFile() throws Exception {
+        ReflectionTestUtils.setField(adapter, "storageVideosDir", tempDir.toString());
+        String fileName = "test.mp4";
+        java.nio.file.Files.write(tempDir.resolve(fileName), "content".getBytes());
+
+        assertDoesNotThrow(() -> adapter.delete(StorageType.VIDEO, fileName));
+    }
 }

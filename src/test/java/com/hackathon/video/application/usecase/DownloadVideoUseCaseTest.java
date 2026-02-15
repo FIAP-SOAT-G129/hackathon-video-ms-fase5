@@ -165,4 +165,12 @@ class DownloadVideoUseCaseTest {
 
         verify(videoStoragePort, never()).retrieve(any(), any());
     }
+
+    @Test
+    void shouldThrowExceptionWhenVideoIsErrorOnZipDownload() {
+        UUID videoId = UUID.randomUUID();
+        Video video = Video.builder().id(videoId).status(VideoStatus.ERROR).errorMessage("fail").build();
+        when(videoRepositoryPort.findById(videoId)).thenReturn(Optional.of(video));
+        assertThrows(com.hackathon.video.exception.BusinessException.class, () -> useCase.downloadZip(videoId));
+    }
 }

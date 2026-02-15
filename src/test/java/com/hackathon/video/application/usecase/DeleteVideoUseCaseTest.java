@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,5 +35,12 @@ class DeleteVideoUseCaseTest {
         verify(storage).delete(StorageType.ZIP, "/path/zips");
 
         verify(repository).delete(id);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenVideoNotFound() {
+        UUID id = UUID.randomUUID();
+        when(repository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(com.hackathon.video.exception.VideoNotFoundException.class, () -> useCase.execute(id));
     }
 }

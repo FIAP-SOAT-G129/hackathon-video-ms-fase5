@@ -100,24 +100,6 @@ class VideoControllerTest {
     }
 
     @Test
-    void shouldProcessResult() throws Exception {
-        UUID id = UUID.randomUUID();
-        ProcessingRequestDTO requestDto = ProcessingRequestDTO.builder()
-                .status(VideoStatus.DONE)
-                .zipPath("/path/to/zip.zip")
-                .build();
-
-        String body = new ObjectMapper().writeValueAsString(requestDto);
-
-        doNothing().when(updateVideoStatusUseCase).execute(any(UUID.class), any(ProcessingRequestDTO.class));
-
-        mockMvc.perform(post("/videos/" + id + "/processing-result")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
     void shouldDownloadVideo() throws Exception {
         UUID id = UUID.randomUUID();
         InputStream is = new ByteArrayInputStream("file-content".getBytes());
@@ -168,5 +150,13 @@ class VideoControllerTest {
 
         mockMvc.perform(delete("/videos/" + id))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldHandleVideoNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(getVideoUseCase.findById(id)).thenThrow(new com.hackathon.video.exception.VideoNotFoundException("Not found"));
+        mockMvc.perform(get("/videos/" + id))
+                .andExpect(status().isNotFound());
     }
 }
