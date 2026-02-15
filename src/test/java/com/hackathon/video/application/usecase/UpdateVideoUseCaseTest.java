@@ -18,8 +18,7 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -64,5 +63,30 @@ class UpdateVideoUseCaseTest {
         verify(storage).store(eq(videoId), any(), any());
         verify(repository).save(any(Video.class));
         verify(publisher).publishVideoProcessRequest(result);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFileIsEmpty() {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(true);
+        assertThrows(com.hackathon.video.exception.BusinessException.class, () -> useCase.execute(UUID.randomUUID(), "t", file));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFormatUnsupported() {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getContentType()).thenReturn("image/png");
+        assertThrows(com.hackathon.video.exception.BusinessException.class, () -> useCase.execute(UUID.randomUUID(), "t", file));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenVideoNotFound() {
+        UUID id = UUID.randomUUID();
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getContentType()).thenReturn("video/mp4");
+        when(repository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(com.hackathon.video.exception.VideoNotFoundException.class, () -> useCase.execute(id, "t", file));
     }
 }

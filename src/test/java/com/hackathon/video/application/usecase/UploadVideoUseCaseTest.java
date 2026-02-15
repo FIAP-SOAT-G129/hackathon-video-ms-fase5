@@ -41,4 +41,19 @@ class UploadVideoUseCaseTest {
         assertEquals("user1", result.getUserId());
         verify(publisher).publishVideoProcessRequest(any());
     }
+
+    @Test
+    void shouldThrowExceptionWhenFileIsEmpty() {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(true);
+        assertThrows(com.hackathon.video.exception.BusinessException.class, () -> useCase.execute("u", "t", file));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFormatUnsupported() {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getContentType()).thenReturn("image/png");
+        assertThrows(com.hackathon.video.exception.BusinessException.class, () -> useCase.execute("u", "t", file));
+    }
 }

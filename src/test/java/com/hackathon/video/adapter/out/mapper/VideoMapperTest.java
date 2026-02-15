@@ -59,4 +59,28 @@ class VideoMapperTest {
         assertEquals("user123", entity.getUserId());
         assertEquals(VideoStatus.DONE, entity.getStatus());
     }
+
+    @Test
+    void shouldMapToDTO() {
+        UUID id = UUID.randomUUID();
+        Video domain = Video.builder()
+                .id(id)
+                .userId("user1")
+                .title("Title")
+                .fileName("file.mp4")
+                .status(VideoStatus.PENDING)
+                .build();
+
+        com.hackathon.video.adapter.in.dto.VideoResponseDTO dto = VideoMapper.toDTO(domain);
+
+        assertNotNull(dto);
+        assertEquals(id, dto.getId());
+        assertEquals("Title", dto.getTitle());
+    }
+
+    @Test
+    void shouldReturnNullWhenMappingNulls() {
+        assertNull(VideoMapper.toDomain(null));
+        assertNull(VideoMapper.toEntity(null));
+    }
 }

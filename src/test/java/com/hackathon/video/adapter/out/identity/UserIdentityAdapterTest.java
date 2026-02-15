@@ -55,9 +55,9 @@ class UserIdentityAdapterTest {
         String userId = "user123";
         String email = "user123@example.com";
         String url = AUTH_URL + "/users/" + userId;
-        
+
         when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("email", email);
         when(restTemplate.getForObject(url, Map.class)).thenReturn(response);
@@ -67,5 +67,27 @@ class UserIdentityAdapterTest {
         assertTrue(result.isPresent());
         assertEquals(email, result.get());
         verify(cacheRepository).save(userId, email);
+    }
+
+    @Test
+    void shouldReturnEmptyWhenApiReturnsNull() {
+        String userId = "user123";
+        when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenReturn(null);
+
+        Optional<String> result = identityAdapter.getEmailByUserId(userId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenApiThrowsException() {
+        String userId = "user123";
+        when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenThrow(new RuntimeException("API Error"));
+
+        Optional<String> result = identityAdapter.getEmailByUserId(userId);
+
+        assertTrue(result.isEmpty());
     }
 }

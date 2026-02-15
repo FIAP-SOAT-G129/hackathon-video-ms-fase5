@@ -151,4 +151,12 @@ class VideoControllerTest {
         mockMvc.perform(delete("/videos/" + id))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void shouldHandleVideoNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(getVideoUseCase.findById(id)).thenThrow(new com.hackathon.video.exception.VideoNotFoundException("Not found"));
+        mockMvc.perform(get("/videos/" + id))
+                .andExpect(status().isNotFound());
+    }
 }

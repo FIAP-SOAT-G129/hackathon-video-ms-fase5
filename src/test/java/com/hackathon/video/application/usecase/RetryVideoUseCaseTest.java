@@ -46,4 +46,11 @@ class RetryVideoUseCaseTest {
 
         assertThrows(BusinessException.class, () -> useCase.execute(id));
     }
+
+    @Test
+    void shouldThrowExceptionWhenVideoNotFound() {
+        UUID id = UUID.randomUUID();
+        when(repository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(com.hackathon.video.exception.VideoNotFoundException.class, () -> useCase.execute(id));
+    }
 }
