@@ -1,16 +1,7 @@
-name: CI - Build, Test and Sonar
+name: CI - Build and Test
 
 on:
   workflow_call:
-    inputs:
-      sonar:
-        description: "Run SonarQube analysis"
-        type: boolean
-        required: false
-        default: false
-    secrets:
-      SONAR_TOKEN:
-        required: false
 
 env:
   JAVA_VERSION: 21
@@ -40,19 +31,7 @@ jobs:
             ${{ runner.os }}-m2
 
       - name: Build + Unit Tests
-        if: ${{ inputs.sonar == false }}
         run: mvn clean verify
-
-      - name: Build + Unit Tests + SonarCloud
-        if: ${{ inputs.sonar == true }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }} \
-            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }} \
-            -Dsonar.host.url=${{ vars.SONAR_HOST }} \
-            -Dsonar.token=$SONAR_TOKEN
 
       - name: Upload JaCoCo Coverage Artifact
         uses: actions/upload-artifact@v4
