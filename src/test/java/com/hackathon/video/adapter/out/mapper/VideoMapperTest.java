@@ -20,7 +20,8 @@ class VideoMapperTest {
         entity.setId(id);
         entity.setUserId("user123");
         entity.setTitle("Test Video");
-        entity.setOriginalFileName("test.mp4");
+        entity.setFileName("test.mp4");
+        entity.setMimeType("video/mp4");
         entity.setStoragePath("/path/test.mp4");
         entity.setStatus(VideoStatus.PENDING);
         entity.setCreatedAt(now);
@@ -43,7 +44,8 @@ class VideoMapperTest {
                 .id(id)
                 .userId("user123")
                 .title("Test Video")
-                .originalFileName("test.mp4")
+                .fileName("test.mp4")
+                .mimeType("video/mp4")
                 .storagePath("/path/test.mp4")
                 .status(VideoStatus.DONE)
                 .createdAt(now)
@@ -56,5 +58,29 @@ class VideoMapperTest {
         assertEquals(id, entity.getId());
         assertEquals("user123", entity.getUserId());
         assertEquals(VideoStatus.DONE, entity.getStatus());
+    }
+
+    @Test
+    void shouldMapToDTO() {
+        UUID id = UUID.randomUUID();
+        Video domain = Video.builder()
+                .id(id)
+                .userId("user1")
+                .title("Title")
+                .fileName("file.mp4")
+                .status(VideoStatus.PENDING)
+                .build();
+
+        com.hackathon.video.adapter.in.dto.VideoResponseDTO dto = VideoMapper.toDTO(domain);
+
+        assertNotNull(dto);
+        assertEquals(id, dto.getId());
+        assertEquals("Title", dto.getTitle());
+    }
+
+    @Test
+    void shouldReturnNullWhenMappingNulls() {
+        assertNull(VideoMapper.toDomain(null));
+        assertNull(VideoMapper.toEntity(null));
     }
 }

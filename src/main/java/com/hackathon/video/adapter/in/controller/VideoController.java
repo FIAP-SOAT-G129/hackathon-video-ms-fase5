@@ -1,18 +1,21 @@
 package com.hackathon.video.adapter.in.controller;
 
-import com.hackathon.video.adapter.in.dto.UpdateStatusRequestDTO;
+import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
 import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
 import com.hackathon.video.adapter.out.mapper.VideoMapper;
 import com.hackathon.video.application.usecase.*;
 import com.hackathon.video.domain.entity.Video;
-import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,17 +26,21 @@ public class VideoController {
 
     private final UploadVideoUseCase uploadVideoUseCase;
     private final GetVideoUseCase getVideoUseCase;
-    private final UpdateVideoStatusUseCase updateVideoStatusUseCase;
     private final DownloadVideoUseCase downloadVideoUseCase;
     private final DeleteVideoUseCase deleteVideoUseCase;
+    private final RetryVideoUseCase retryVideoUseCase;
+    private final UpdateVideoUseCase updateVideoUseCase;
 
-    @PostMapping("/user/{userId}")
+    @PostMapping(
+            path = "/user/{userId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<VideoResponseDTO> upload(
             @PathVariable String userId,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("title") String title) throws IOException {
-        
-        Video video = uploadVideoUseCase.execute(userId, title, file.getOriginalFilename(), file.getInputStream());
+            @RequestPart("title") String title,
+            @RequestPart("file") MultipartFile file
+    ) throws IOException {
+        Video video = uploadVideoUseCase.execute(userId, title, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(VideoMapper.toDTO(video));
     }
 
@@ -49,24 +56,44 @@ public class VideoController {
         return ResponseEntity.ok((VideoMapper.toDTO(video)));
     }
 
-    @PatchMapping("/{videoId}/status")
-    public ResponseEntity<Void> updateStatus(
+    @PutMapping("/{videoId}")
+    public ResponseEntity<VideoResponseDTO> update(
             @PathVariable UUID videoId,
-            @RequestBody UpdateStatusRequestDTO request) {
-        updateVideoStatusUseCase.execute(videoId, request.getStatus(), request.getErrorMessage());
-        return ResponseEntity.noContent().build();
+            @RequestPart("title") String title,
+            @RequestPart("file") MultipartFile file
+    ) throws IOException {
+        Video video = updateVideoUseCase.execute(videoId, title, file);
+        return ResponseEntity.ok(VideoMapper.toDTO(video));
+    }
+
+    @PostMapping("/{videoId}/retry")
+    public ResponseEntity<VideoResponseDTO> retry(@PathVariable UUID videoId) {
+        Video video = retryVideoUseCase.execute(videoId);
+        return ResponseEntity.ok(VideoMapper.toDTO(video));
     }
 
     @GetMapping("/{videoId}/download")
-    public ResponseEntity<byte[]> downloadOriginal(@PathVariable UUID videoId) throws IOException {
-        InputStream is = downloadVideoUseCase.downloadOriginal(videoId);
-        return ResponseEntity.ok(is.readAllBytes());
+    public ResponseEntity<Resource> downloadVideo(@PathVariable UUID videoId) {
+        FileDownloadResultDTO result = downloadVideoUseCase.downloadVideo(videoId);
+
+        InputStreamResource resource = new InputStreamResource(result.getInputStream());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + result.getFileName() + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     @GetMapping("/{videoId}/zip")
-    public ResponseEntity<byte[]> downloadZip(@PathVariable UUID videoId) throws IOException {
-        InputStream is = downloadVideoUseCase.downloadZip(videoId);
-        return ResponseEntity.ok(is.readAllBytes());
+    public ResponseEntity<Resource> downloadZip(@PathVariable UUID videoId) {
+        FileDownloadResultDTO result = downloadVideoUseCase.downloadZip(videoId);
+
+        InputStreamResource resource = new InputStreamResource(result.getInputStream());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + result.getFileName() + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     @DeleteMapping("/{videoId}")

@@ -70,6 +70,7 @@ Estrutura do projeto:
   │   │   │       ├── entity/
   │   │   │       ├── mapper/
   │   │   │       ├── messaging/
+  │   │   │       ├── notification/
   │   │   │       ├── repository/
   │   │   │       └── storage/
   │   │   │
@@ -81,7 +82,6 @@ Estrutura do projeto:
   │   │   ├── domain/                        # Núcleo do domínio (regras puras de negócio)
   │   │   │   ├── entity/
   │   │   │   ├── enums/
-  │   │   │   ├── valueobject/               
   │   │   │   └── repository/                # Interfaces (ports)
   │   │   │
   │   │   ├── exception/                     # Tratamento global de exceções
@@ -110,11 +110,22 @@ A aplicação já vem configurada com valores padrão no `application.yml` para 
 ```env
 APP_PORT=8081
 
+MAX_FILE_SIZE=500MB
+MAX_REQUEST_SIZE=500MB
+
+VIDEOS_STORAGE_PATH=/tmp/videos
+ZIPS_STORAGE_PATH/tmp/zips
+
 DB_HOST=db
 DB_PORT=5432
 DB_NAME=video_db
 DB_USER=user
 DB_PASSWORD=password
+
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=guest
+MAIL_PASSWORD=guest
 
 RABBITMQ_HOST=rabbitmq
 RABBITMQ_PORT=5672

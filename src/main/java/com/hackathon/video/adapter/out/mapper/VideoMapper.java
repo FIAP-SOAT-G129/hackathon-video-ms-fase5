@@ -15,9 +15,10 @@ public class VideoMapper {
                 .id(entity.getId())
                 .userId(entity.getUserId())
                 .title(entity.getTitle())
-                .originalFileName(entity.getOriginalFileName())
+                .fileName(entity.getFileName())
+                .mimeType(entity.getMimeType())
                 .storagePath(entity.getStoragePath())
-                .zipResultPath(entity.getZipResultPath())
+                .zipPath(entity.getZipPath())
                 .status(entity.getStatus())
                 .errorMessage(entity.getErrorMessage())
                 .createdAt(entity.getCreatedAt())
@@ -32,9 +33,10 @@ public class VideoMapper {
         entity.setId(domain.getId());
         entity.setUserId(domain.getUserId());
         entity.setTitle(domain.getTitle());
-        entity.setOriginalFileName(domain.getOriginalFileName());
+        entity.setFileName(domain.getFileName());
+        entity.setMimeType(domain.getMimeType());
         entity.setStoragePath(domain.getStoragePath());
-        entity.setZipResultPath(domain.getZipResultPath());
+        entity.setZipPath(domain.getZipPath());
         entity.setStatus(domain.getStatus());
         entity.setErrorMessage(domain.getErrorMessage());
         entity.setCreatedAt(domain.getCreatedAt());
@@ -47,7 +49,7 @@ public class VideoMapper {
         dto.setId(video.getId());
         dto.setUserId(video.getUserId());
         dto.setTitle(video.getTitle());
-        dto.setOriginalFileName(video.getOriginalFileName());
+        dto.setOriginalFileName(video.getFileName());
         dto.setStatus(video.getStatus());
         dto.setErrorMessage(video.getErrorMessage());
         dto.setCreatedAt(video.getCreatedAt());
