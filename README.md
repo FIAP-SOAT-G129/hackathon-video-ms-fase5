@@ -1,11 +1,11 @@
-# 📹 Fastfood — Microserviço de Processamento de Vídeos
+# 📹 Hackathon — Microserviço de Processamento de Vídeos
 
 [![Release - Build, Quality Gate and Deploy](https://github.com/FIAP-SOAT-G129/hackathon-video-ms-fase5/actions/workflows/release.yml/badge.svg)](https://github.com/FIAP-SOAT-G129/hackathon-video-ms-fase5/actions/workflows/release.yml)
 
 ![Coverage](.github/badges/jacoco.svg)
 ![Branches](.github/badges/branches.svg)
 
-Este repositório implementa o **Microservice de Processamento de Vídeos** da aplicação **Fastfood**, desenvolvido em **Java 21 com Spring Boot 3**.  
+Este repositório implementa o **Microservice de Processamento de Vídeos**, desenvolvido em **Java 21 com Spring Boot 3**.  
 Ele é responsável por receber uploads de vídeos, gerenciar seus metadados e orquestrar o processamento assíncrono para extração de frames e geração de arquivos ZIP.
 
 ---
