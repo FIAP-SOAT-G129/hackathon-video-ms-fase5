@@ -113,9 +113,6 @@ APP_PORT=8081
 MAX_FILE_SIZE=500MB
 MAX_REQUEST_SIZE=500MB
 
-VIDEOS_STORAGE_PATH=/tmp/videos
-ZIPS_STORAGE_PATH/tmp/zips
-
 DB_HOST=db
 DB_PORT=5432
 DB_NAME=video_db
@@ -129,9 +126,16 @@ MAIL_PASSWORD=guest
 
 RABBITMQ_HOST=rabbitmq
 RABBITMQ_PORT=5672
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=guest
 
 REDIS_HOST=redis
 REDIS_PORT=6379
+
+VIDEOS_STORAGE_PATH=/tmp/videos
+ZIPS_STORAGE_PATH/tmp/zips
+
+AUTH_URL=http://auth-service:8080
 ```
 
 ### 🐳 Executando o projeto com Docker Compose
