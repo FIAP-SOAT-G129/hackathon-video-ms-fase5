@@ -41,8 +41,6 @@
         <java.version>21</java.version>
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <jacoco.version>0.8.12</jacoco.version>
-        <sonar.version>5.2.0.4988</sonar.version>
-        <sonar.organization>fiap-soat-g129</sonar.organization>
     </properties>
 
     <dependencies>
@@ -129,13 +127,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- SonarCloud -->
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>${sonar.version}</version>
             </plugin>
 
             <!-- Spring Boot -->
