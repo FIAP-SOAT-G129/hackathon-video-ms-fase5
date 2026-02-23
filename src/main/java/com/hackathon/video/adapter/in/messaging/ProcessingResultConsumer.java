@@ -25,7 +25,6 @@ public class ProcessingResultConsumer {
             log.info("Processing result handled successfully for video: {}", request.getVideoId());
         } catch (Exception e) {
             log.error("Error handling processing result for video: {}", request.getVideoId(), e);
-            // Lança exceção para permitir retry do RabbitMQ se necessário
             throw e;
         }
     }
