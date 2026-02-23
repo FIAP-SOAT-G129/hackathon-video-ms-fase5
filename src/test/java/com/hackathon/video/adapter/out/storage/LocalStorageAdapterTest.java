@@ -1,6 +1,8 @@
 package com.hackathon.video.adapter.out.storage;
 
+import br.com.fiap.storage.local.LocalVideoStorageService;
 import com.hackathon.video.domain.enums.StorageType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -14,14 +16,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LocalStorageAdapterTest {
 
-    private final LocalStorageAdapter adapter = new LocalStorageAdapter();
+    private LocalStorageAdapter adapter;
 
     @TempDir
     Path tempDir;
 
+    @BeforeEach
+    void setUp() {
+        adapter = new LocalStorageAdapter(new LocalVideoStorageService(tempDir.toString()));
+        ReflectionTestUtils.setField(adapter, "storageVideosDir", tempDir.toString());
+        ReflectionTestUtils.setField(adapter, "storageZipsDir", tempDir.toString());
+    }
+
     @Test
     void shouldStoreAndRetrieveVideoFile() throws Exception {
-        ReflectionTestUtils.setField(adapter, "storageVideosDir", tempDir.toString());
 
         String extension = ".mp4";
         UUID videoId = UUID.randomUUID();
@@ -39,7 +47,6 @@ class LocalStorageAdapterTest {
 
     @Test
     void shouldThrowExceptionWhenStoreFails() {
-        ReflectionTestUtils.setField(adapter, "storageVideosDir", "/tmp");
         UUID videoId = UUID.randomUUID();
         InputStream is = new ByteArrayInputStream("hello".getBytes());
 
@@ -57,13 +64,11 @@ class LocalStorageAdapterTest {
 
     @Test
     void testResolveInternalPathSecurityViolation() {
-        ReflectionTestUtils.setField(adapter, "storageVideosDir", tempDir.toString());
         assertThrows(com.hackathon.video.exception.StorageException.class, () -> adapter.retrieve(StorageType.VIDEO, "../secret.txt"));
     }
 
     @Test
     void shouldDeleteFile() throws Exception {
-        ReflectionTestUtils.setField(adapter, "storageVideosDir", tempDir.toString());
         String fileName = "test.mp4";
         java.nio.file.Files.write(tempDir.resolve(fileName), "content".getBytes());
 
