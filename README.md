@@ -1,11 +1,11 @@
-# 📹 Fastfood — Microserviço de Processamento de Vídeos
+# 📹 Hackathon — Microserviço de Processamento de Vídeos
 
 [![Release - Build, Quality Gate and Deploy](https://github.com/FIAP-SOAT-G129/hackathon-video-ms-fase5/actions/workflows/release.yml/badge.svg)](https://github.com/FIAP-SOAT-G129/hackathon-video-ms-fase5/actions/workflows/release.yml)
 
 ![Coverage](.github/badges/jacoco.svg)
 ![Branches](.github/badges/branches.svg)
 
-Este repositório implementa o **Microservice de Processamento de Vídeos** da aplicação **Fastfood**, desenvolvido em **Java 21 com Spring Boot 3**.  
+Este repositório implementa o **Microservice de Processamento de Vídeos**, desenvolvido em **Java 21 com Spring Boot 3**.  
 Ele é responsável por receber uploads de vídeos, gerenciar seus metadados e orquestrar o processamento assíncrono para extração de frames e geração de arquivos ZIP.
 
 ---
@@ -113,9 +113,6 @@ APP_PORT=8081
 MAX_FILE_SIZE=500MB
 MAX_REQUEST_SIZE=500MB
 
-VIDEOS_STORAGE_PATH=/tmp/videos
-ZIPS_STORAGE_PATH/tmp/zips
-
 DB_HOST=db
 DB_PORT=5432
 DB_NAME=video_db
@@ -129,9 +126,16 @@ MAIL_PASSWORD=guest
 
 RABBITMQ_HOST=rabbitmq
 RABBITMQ_PORT=5672
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=guest
 
 REDIS_HOST=redis
 REDIS_PORT=6379
+
+VIDEOS_STORAGE_PATH=/tmp/videos
+ZIPS_STORAGE_PATH/tmp/zips
+
+AUTH_URL=http://auth-service:8080
 ```
 
 ### 🐳 Executando o projeto com Docker Compose
