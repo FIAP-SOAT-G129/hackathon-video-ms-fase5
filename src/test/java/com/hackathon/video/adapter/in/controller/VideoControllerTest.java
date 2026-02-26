@@ -1,17 +1,19 @@
 package com.hackathon.video.adapter.in.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
-import com.hackathon.video.adapter.in.dto.ProcessingRequestDTO;
 import com.hackathon.video.application.usecase.*;
+import com.hackathon.video.config.SecurityConfig;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.VideoStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,10 +28,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(VideoController.class)
+@WithMockUser
+@Import(SecurityConfig.class)
 class VideoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
 
     @MockBean private UploadVideoUseCase uploadVideoUseCase;
     @MockBean private GetVideoUseCase getVideoUseCase;
