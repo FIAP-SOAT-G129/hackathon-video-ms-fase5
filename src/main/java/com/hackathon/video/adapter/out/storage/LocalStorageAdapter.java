@@ -1,6 +1,7 @@
 package com.hackathon.video.adapter.out.storage;
 
 import br.com.fiap.storage.VideoStorageService;
+import br.com.fiap.storage.exception.FileDeletionException;
 import br.com.fiap.storage.exception.FileRetrievalException;
 import br.com.fiap.storage.exception.FileStorageException;
 import br.com.fiap.storage.exception.StoredFileNotFoundException;
@@ -11,14 +12,9 @@ import com.hackathon.video.exception.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 @Component
@@ -27,15 +23,20 @@ public class LocalStorageAdapter implements VideoStoragePort {
     private static final Logger log = LoggerFactory.getLogger(LocalStorageAdapter.class);
 
     private final VideoStorageService videoStorage;
+    private final VideoStorageService zipStorage;
 
-    @Value("${app.storage.videos-path:/tmp/videos}")
-    private String storageVideosDir;
-
-    @Value("${app.storage.zips-path:/tmp/zips}")
-    private String storageZipsDir;
-
-    public LocalStorageAdapter(@Qualifier("videoStorage") VideoStorageService videoStorage) {
+    public LocalStorageAdapter(
+            @Qualifier("videoStorage") VideoStorageService videoStorage,
+            @Qualifier("zipStorage") VideoStorageService zipStorage) {
         this.videoStorage = videoStorage;
+        this.zipStorage = zipStorage;
+    }
+
+    private VideoStorageService getStorage(StorageType type) {
+        return switch (type) {
+            case VIDEO -> videoStorage;
+            case ZIP -> zipStorage;
+        };
     }
 
     @Override
@@ -59,43 +60,23 @@ public class LocalStorageAdapter implements VideoStoragePort {
     }
 
     @Override
-    public InputStream retrieve(StorageType type, String fileName) {
-        Path path = resolveInternalPath(type, fileName);
-
+    public InputStream retrieve(StorageType type, String storagePath) {
         try {
-            return videoStorage.retrieve(path.toString());
+            return getStorage(type).retrieve(storagePath);
         } catch (StoredFileNotFoundException | FileRetrievalException e) {
-            log.error("Failed to read file: {}", fileName);
+            log.error("Failed to read file: {}", storagePath);
             throw new StorageException("Failed to read file");
         }
     }
 
     @Override
-    public void delete(StorageType type, String fileName) {
-        Path path = resolveInternalPath(type, fileName);
-
+    public void delete(StorageType type, String storagePath) {
         try {
-            Files.deleteIfExists(path);
-            log.info("File deleted: {}", fileName);
-        } catch (IOException e) {
-            log.error("Failed to delete file: {}", fileName);
+            getStorage(type).delete(storagePath);
+            log.info("File deleted: {}", storagePath);
+        } catch (FileDeletionException e) {
+            log.error("Failed to delete file: {}", storagePath);
             throw new StorageException("Failed to delete file");
         }
-    }
-
-    private Path resolveInternalPath(StorageType type, String fileName) {
-        Path root = switch (type) {
-            case VIDEO -> Paths.get(storageVideosDir);
-            case ZIP -> Paths.get(storageZipsDir);
-        };
-
-        Path normalizedRoot = root.toAbsolutePath().normalize();
-        Path resolved = normalizedRoot.resolve(fileName).normalize();
-
-        if (!resolved.startsWith(normalizedRoot)) {
-            throw new StorageException("Security violation: invalid file path");
-        }
-
-        return resolved;
     }
 }
