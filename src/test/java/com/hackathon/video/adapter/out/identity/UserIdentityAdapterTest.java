@@ -7,6 +7,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,6 +34,15 @@ class UserIdentityAdapterTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private Jwt jwt;
+
     @InjectMocks
     private UserIdentityAdapter identityAdapter;
 
@@ -35,6 +51,7 @@ class UserIdentityAdapterTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(identityAdapter, "authServiceUrl", AUTH_URL);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
@@ -54,13 +71,20 @@ class UserIdentityAdapterTest {
     void shouldReturnEmailFromApiAndSaveToCache() {
         String userId = "user123";
         String email = "user123@example.com";
-        String url = AUTH_URL + "/users/" + userId;
+        String url = AUTH_URL + "/auth/me";
+        String token = "mock-token";
 
         when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(jwt);
+        when(jwt.getTokenValue()).thenReturn(token);
 
         Map<String, Object> response = new HashMap<>();
         response.put("email", email);
-        when(restTemplate.getForObject(url, Map.class)).thenReturn(response);
+        ResponseEntity<Map> responseEntity = ResponseEntity.ok(response);
+        
+        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
 
         Optional<String> result = identityAdapter.getEmailByUserId(userId);
 
@@ -70,21 +94,31 @@ class UserIdentityAdapterTest {
     }
 
     @Test
-    void shouldReturnEmptyWhenApiReturnsNull() {
+    void shouldReturnEmptyWhenNoJwtInContext() {
         String userId = "user123";
         when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenReturn(null);
+        when(securityContext.getAuthentication()).thenReturn(null);
 
         Optional<String> result = identityAdapter.getEmailByUserId(userId);
 
         assertTrue(result.isEmpty());
+        verifyNoInteractions(restTemplate);
     }
 
     @Test
-    void shouldReturnEmptyWhenApiThrowsException() {
+    @SuppressWarnings("unchecked")
+    void shouldReturnEmptyWhenApiReturnsNull() {
         String userId = "user123";
+        String url = AUTH_URL + "/auth/me";
+        String token = "mock-token";
+
         when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenThrow(new RuntimeException("API Error"));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(jwt);
+        when(jwt.getTokenValue()).thenReturn(token);
+        
+        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(Map.class)))
+                .thenReturn(ResponseEntity.ok(null));
 
         Optional<String> result = identityAdapter.getEmailByUserId(userId);
 
