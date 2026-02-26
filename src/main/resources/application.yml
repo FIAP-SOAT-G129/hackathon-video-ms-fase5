@@ -2,17 +2,6 @@ spring:
   application:
     name: hackathon-video-ms
 
-storage:
-  base-path: ${VIDEOS_STORAGE_PATH:/tmp/fastfood}
-  video-path: videos
-  zip-path: zips
-  allowed-video-extensions:
-    - .mp4
-    - .mov
-    - .avi
-  allowed-zip-extensions:
-    - .zip
-
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:500MB}
@@ -59,18 +48,17 @@ storage:
           starttls:
             enable: true
 
+  jwt:
+    secret: ${JWT_SECRET:SECURITY_SECRET_KEY}
+
 app:
   storage:
     videos-path: ${VIDEOS_STORAGE_PATH:/tmp/videos}
     zips-path: ${ZIPS_STORAGE_PATH:/tmp/zips}
 
-services:
-  auth:
-    url: ${AUTH_URL:http://auth-ms:8080}
-
-jwt:
-  secret: ${JWT_SECRET:q3s6v9y$B&E)H@McQfTjWnZr4u7x!A%C}
-  issuer: ${JWT_ISSUER:hackathon-issuer}
+  services:
+    auth:
+      url: ${AUTH_URL:http://auth-ms:8080}
 
 server:
   port: ${APP_PORT:8081}

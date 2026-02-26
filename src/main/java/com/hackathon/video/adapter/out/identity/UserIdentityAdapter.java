@@ -26,7 +26,7 @@ public class UserIdentityAdapter implements UserIdentityPort {
     private final UserEmailCacheRepository cacheRepository;
     private final RestTemplate restTemplate;
 
-    @Value("${services.auth.url}")
+    @Value("${app.services.auth.url}")
     private String authServiceUrl;
 
     @Override
@@ -55,7 +55,7 @@ public class UserIdentityAdapter implements UserIdentityPort {
                 return Optional.empty();
             }
 
-            String url = authServiceUrl + "/auth/me"; // Usando /auth/me para pegar os dados do usuário logado
+            String url = authServiceUrl + "/auth/me";
             log.info("Fetching user info from Auth Service with JWT Relay: {}", url);
 
             HttpHeaders headers = new HttpHeaders();
