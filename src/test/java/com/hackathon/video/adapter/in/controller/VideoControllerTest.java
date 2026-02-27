@@ -2,6 +2,7 @@ package com.hackathon.video.adapter.in.controller;
 
 import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
 import com.hackathon.video.application.usecase.*;
+import com.hackathon.video.config.AuthenticationFilter;
 import com.hackathon.video.config.SecurityConfig;
 import com.hackathon.video.domain.entity.Video;
 import com.hackathon.video.domain.enums.VideoStatus;
@@ -12,10 +13,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -28,15 +26,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(VideoController.class)
-@WithMockUser
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, AuthenticationFilter.class})
 class VideoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
 
     @MockBean private UploadVideoUseCase uploadVideoUseCase;
     @MockBean private GetVideoUseCase getVideoUseCase;
@@ -46,41 +40,36 @@ class VideoControllerTest {
     @MockBean private RetryVideoUseCase retryVideoUseCase;
     @MockBean private UpdateVideoUseCase updateVideoUseCase;
 
+    private final String VALID_USER_ID = "user123";
+    private final String VALID_EMAIL = "user@test.com";
+
     @Test
-    void shouldUploadVideo() throws Exception {
-        MockMultipartFile file = new MockMultipartFile("file", "test.mp4", "video/mp4", "content".getBytes());
-        MockMultipartFile titlePart = new MockMultipartFile("title", "", MediaType.TEXT_PLAIN_VALUE, "Title".getBytes());
-
-        Video video = Video.builder()
-                .id(UUID.randomUUID())
-                .userId("user1")
-                .title("Title")
-                .status(VideoStatus.PROCESSING)
-                .build();
-
-        when(uploadVideoUseCase.execute(anyString(), anyString(), any(MultipartFile.class))).thenReturn(video);
-
-        mockMvc.perform(multipart("/videos/user/user1").file(file).file(titlePart))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists());
+    void shouldReturnForbiddenWhenHeadersMissing() throws Exception {
+        mockMvc.perform(get("/videos"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void shouldUpdateVideo() throws Exception {
-        UUID id = UUID.randomUUID();
-        MockMultipartFile file = new MockMultipartFile("file", "update.mp4", "video/mp4", "new content".getBytes());
-        MockMultipartFile titlePart = new MockMultipartFile("title", "", MediaType.TEXT_PLAIN_VALUE, "New Title".getBytes());
+    void shouldUploadVideo() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "video.mp4", "video/mp4", "new content".getBytes());
+        MockMultipartFile title = new MockMultipartFile("title", "", MediaType.TEXT_PLAIN_VALUE, "New Title".getBytes());
 
-        Video video = Video.builder().id(id).title("New Title").build();
+        Video video = Video.builder()
+                .id(UUID.randomUUID())
+                .userId(VALID_USER_ID)
+                .title("My Video")
+                .status(VideoStatus.PROCESSING)
+                .build();
 
-        when(updateVideoUseCase.execute(eq(id), anyString(), any(MultipartFile.class))).thenReturn(video);
+        when(uploadVideoUseCase.execute(eq(VALID_USER_ID), anyString(), any())).thenReturn(video);
 
-        mockMvc.perform(multipart("/videos/" + id)
+        mockMvc.perform(multipart("/videos")
                         .file(file)
-                        .file(titlePart)
-                        .with(request -> { request.setMethod("PUT"); return request; }))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("New Title"));
+                        .file(title)
+                        .header("x-user-id", VALID_USER_ID)
+                        .header("x-user-email", VALID_EMAIL))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists());
     }
 
     @Test
@@ -90,7 +79,9 @@ class VideoControllerTest {
 
         when(retryVideoUseCase.execute(id)).thenReturn(video);
 
-        mockMvc.perform(post("/videos/" + id + "/retry"))
+        mockMvc.perform(post("/videos/" + id + "/retry")
+                    .header("x-user-id", VALID_USER_ID)
+                    .header("x-user-email", VALID_EMAIL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PENDING"));
     }
@@ -101,7 +92,9 @@ class VideoControllerTest {
         Video video = Video.builder().id(id).title("Found").build();
         when(getVideoUseCase.findById(id)).thenReturn(video);
 
-        mockMvc.perform(get("/videos/" + id))
+        mockMvc.perform(get("/videos/" + id)
+                    .header("x-user-id", VALID_USER_ID)
+                    .header("x-user-email", VALID_EMAIL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Found"));
     }
@@ -120,7 +113,9 @@ class VideoControllerTest {
 
         when(downloadVideoUseCase.downloadVideo(id)).thenReturn(result);
 
-        mockMvc.perform(get("/videos/" + id + "/download"))
+        mockMvc.perform(get("/videos/" + id + "/download")
+                    .header("x-user-id", VALID_USER_ID)
+                    .header("x-user-email", VALID_EMAIL))
                 .andExpect(status().isOk());
     }
 
@@ -138,7 +133,9 @@ class VideoControllerTest {
 
         when(downloadVideoUseCase.downloadZip(id)).thenReturn(result);
 
-        mockMvc.perform(get("/videos/" + id + "/zip"))
+        mockMvc.perform(get("/videos/" + id + "/zip")
+                    .header("x-user-id", VALID_USER_ID)
+                    .header("x-user-email", VALID_EMAIL))
                 .andExpect(status().isOk());
     }
 
@@ -146,7 +143,9 @@ class VideoControllerTest {
     void shouldListVideos() throws Exception {
         when(getVideoUseCase.findByUserId("user1")).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/videos/user/user1"))
+        mockMvc.perform(get("/videos")
+                    .header("x-user-id", VALID_USER_ID)
+                    .header("x-user-email", VALID_EMAIL))
                 .andExpect(status().isOk());
     }
 
@@ -155,7 +154,9 @@ class VideoControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(deleteVideoUseCase).execute(id);
 
-        mockMvc.perform(delete("/videos/" + id))
+        mockMvc.perform(delete("/videos/" + id)
+                    .header("x-user-id", VALID_USER_ID)
+                    .header("x-user-email", VALID_EMAIL))
                 .andExpect(status().isNoContent());
     }
 
@@ -163,7 +164,9 @@ class VideoControllerTest {
     void shouldHandleVideoNotFound() throws Exception {
         UUID id = UUID.randomUUID();
         when(getVideoUseCase.findById(id)).thenThrow(new com.hackathon.video.exception.VideoNotFoundException("Not found"));
-        mockMvc.perform(get("/videos/" + id))
+        mockMvc.perform(get("/videos/" + id)
+                    .header("x-user-id", VALID_USER_ID)
+                    .header("x-user-email", VALID_EMAIL))
                 .andExpect(status().isNotFound());
     }
 }

@@ -48,9 +48,6 @@ spring:
           starttls:
             enable: true
 
-  jwt:
-    secret: ${JWT_SECRET:SECURITY_SECRET_KEY}
-
 app:
   storage:
     videos-path: ${VIDEOS_STORAGE_PATH:/tmp/videos}

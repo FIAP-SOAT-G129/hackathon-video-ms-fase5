@@ -2,16 +2,10 @@ package com.hackathon.video.adapter.out.identity;
 
 import com.hackathon.video.adapter.out.repository.UserEmailCacheRepository;
 import com.hackathon.video.domain.repository.UserIdentityPort;
+import com.hackathon.video.exception.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,15 +24,15 @@ public class UserIdentityAdapter implements UserIdentityPort {
     private String authServiceUrl;
 
     @Override
-    public Optional<String> getEmailByUserId(String userId) {
-        // 1. Tenta buscar no cache
+    public Optional<String> getEmailByUserId(String userId) throws  MessagingException {
+        // 1. Try to get from cache
         Optional<String> cachedEmail = cacheRepository.findByUserId(userId);
         if (cachedEmail.isPresent()) {
             log.info("Email found in cache for user: {}", userId);
             return cachedEmail;
         }
 
-        // 2. Fallback: Chamada para API de Users com JWT Relay
+        // 2. Fallback: Call the Users API
         log.info("Email not found in cache. Fetching from User API for user: {}", userId);
         Optional<String> emailFromApi = fetchFromExternalApi(userId);
         
@@ -47,38 +41,21 @@ public class UserIdentityAdapter implements UserIdentityPort {
         return emailFromApi;
     }
 
-    private Optional<String> fetchFromExternalApi(String userId) {
+    private Optional<String> fetchFromExternalApi(String userId) throws MessagingException {
         try {
-            String token = getJwtFromContext();
-            if (token == null) {
-                log.warn("No JWT found in SecurityContext for relay");
-                return Optional.empty();
-            }
+            String url = authServiceUrl + "/users/" + userId;
+            log.info("Fetching user info from Auth Service: {}", url);
 
-            String url = authServiceUrl + "/auth/me";
-            log.info("Fetching user info from Auth Service with JWT Relay: {}", url);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<Map> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
-            Map<String, Object> response = responseEntity.getBody();
-            
             if (response != null && response.containsKey("email")) {
                 return Optional.of((String) response.get("email"));
             }
         } catch (Exception e) {
-            log.error("Error fetching user email from Auth Service with JWT Relay for userId: {}", userId, e);
+            log.error("Error fetching user email from Auth Service for userId: {}", userId, e);
+            throw new MessagingException("Failed to fetch user email from Auth Service for userId: " + userId);
         }
         return Optional.empty();
-    }
-
-    private String getJwtFromContext() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getTokenValue();
-        }
-        return null;
     }
 }
