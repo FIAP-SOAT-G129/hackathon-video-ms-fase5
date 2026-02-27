@@ -110,6 +110,8 @@ A aplicação já vem configurada com valores padrão no `application.yml` para 
 ```env
 APP_PORT=8081
 
+JWT_SECRET=YOUR_SECRET_KEY
+
 MAX_FILE_SIZE=500MB
 MAX_REQUEST_SIZE=500MB
 

@@ -4,7 +4,6 @@ import com.hackathon.video.adapter.in.dto.FileDownloadResultDTO;
 import com.hackathon.video.adapter.in.dto.VideoResponseDTO;
 import com.hackathon.video.adapter.out.mapper.VideoMapper;
 import com.hackathon.video.application.usecase.*;
-import com.hackathon.video.config.AuthenticationFilter;
 import com.hackathon.video.domain.entity.Video;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -36,22 +35,20 @@ public class VideoController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<VideoResponseDTO> upload(
-            @AuthenticationPrincipal AuthenticationFilter.UserPrincipal principal,
+            @AuthenticationPrincipal String userId,
             @RequestPart("title") String title,
             @RequestPart("file") MultipartFile file
     ) throws IOException {
-        if(principal == null) throw new BadCredentialsException("Invalid user id");
+        if(userId == null) throw new BadCredentialsException("Invalid user id");
 
-        String userId = principal.id();
         Video video = uploadVideoUseCase.execute(userId, title, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(VideoMapper.toDTO(video));
     }
 
     @GetMapping()
-    public ResponseEntity<List<VideoResponseDTO>> list(@AuthenticationPrincipal AuthenticationFilter.UserPrincipal principal) {
-        if(principal == null) throw new BadCredentialsException("Invalid user id");
+    public ResponseEntity<List<VideoResponseDTO>> list(@AuthenticationPrincipal String userId) {
+        if(userId == null) throw new BadCredentialsException("Invalid user id");
 
-        String userId = principal.id();
         List<Video> videos = getVideoUseCase.findByUserId(userId);
         return ResponseEntity.ok(videos.stream().map(VideoMapper::toDTO).toList());
     }
