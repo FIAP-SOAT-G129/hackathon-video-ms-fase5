@@ -43,7 +43,7 @@ public class UserIdentityAdapter implements UserIdentityPort {
 
     private Optional<String> fetchFromExternalApi(String userId) throws MessagingException {
         try {
-            String url = authServiceUrl + "/users/" + userId;
+            String url = authServiceUrl + "/auth/users/" + userId;
             log.info("Fetching user info from Auth Service: {}", url);
 
             @SuppressWarnings("unchecked")

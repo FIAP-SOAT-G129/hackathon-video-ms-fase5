@@ -55,7 +55,7 @@ class UserIdentityAdapterTest {
 
     @Test
     void shouldFetchFromApiAndSaveToCache() throws MessagingException {
-        String expectedUrl = AUTH_URL + "/users/" + USER_ID;
+        String expectedUrl = AUTH_URL + "/auth/users/" + USER_ID;
         Map<String, Object> mockResponse = new HashMap<>();
         mockResponse.put("email", EMAIL);
 
