@@ -1,19 +1,13 @@
 package com.hackathon.video.adapter.out.identity;
 
 import com.hackathon.video.adapter.out.repository.UserEmailCacheRepository;
+import com.hackathon.video.exception.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,8 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,94 +27,80 @@ class UserIdentityAdapterTest {
     @Mock
     private RestTemplate restTemplate;
 
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
-    @Mock
-    private Jwt jwt;
-
     @InjectMocks
     private UserIdentityAdapter identityAdapter;
 
     private final String AUTH_URL = "http://auth-service";
+    private final String USER_ID = "user123";
+    private final String EMAIL = "user@test.com";
 
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(identityAdapter, "authServiceUrl", AUTH_URL);
-        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
-    void shouldReturnEmailFromCache() {
-        when(cacheRepository.findByUserId("user123")).thenReturn(Optional.of("cached@example.com"));
+    void shouldReturnEmailFromCache() throws MessagingException {
+        when(cacheRepository.findByUserId(USER_ID)).thenReturn(Optional.of(EMAIL));
 
-        Optional<String> result = identityAdapter.getEmailByUserId("user123");
+        Optional<String> result = identityAdapter.getEmailByUserId(USER_ID);
 
         assertTrue(result.isPresent());
-        assertEquals("cached@example.com", result.get());
+        assertEquals(EMAIL, result.get());
+
+        verify(cacheRepository).findByUserId(USER_ID);
+        verifyNoInteractions(restTemplate);
         verify(cacheRepository, never()).save(anyString(), anyString());
-        verifyNoInteractions(restTemplate);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void shouldReturnEmailFromApiAndSaveToCache() {
-        String userId = "user123";
-        String email = "user123@example.com";
-        String url = AUTH_URL + "/auth/me";
-        String token = "mock-token";
+    void shouldFetchFromApiAndSaveToCache() throws MessagingException {
+        String expectedUrl = AUTH_URL + "/auth/users/" + USER_ID;
+        Map<String, Object> mockResponse = new HashMap<>();
+        mockResponse.put("email", EMAIL);
 
-        when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(jwt);
-        when(jwt.getTokenValue()).thenReturn(token);
+        when(cacheRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
+        when(restTemplate.getForObject(expectedUrl, Map.class)).thenReturn(mockResponse);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("email", email);
-        ResponseEntity<Map> responseEntity = ResponseEntity.ok(response);
-        
-        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(Map.class)))
-                .thenReturn(responseEntity);
-
-        Optional<String> result = identityAdapter.getEmailByUserId(userId);
+        Optional<String> result = identityAdapter.getEmailByUserId(USER_ID);
 
         assertTrue(result.isPresent());
-        assertEquals(email, result.get());
-        verify(cacheRepository).save(userId, email);
+        assertEquals(EMAIL, result.get());
+        verify(cacheRepository).save(USER_ID, EMAIL);
     }
 
     @Test
-    void shouldReturnEmptyWhenNoJwtInContext() {
-        String userId = "user123";
-        when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        when(securityContext.getAuthentication()).thenReturn(null);
+    void shouldReturnEmptyWhenApiReturnsNoEmailField() throws MessagingException {
+        when(cacheRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
+        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenReturn(new HashMap<>());
 
-        Optional<String> result = identityAdapter.getEmailByUserId(userId);
+        Optional<String> result = identityAdapter.getEmailByUserId(USER_ID);
 
         assertTrue(result.isEmpty());
-        verifyNoInteractions(restTemplate);
+        verify(cacheRepository, never()).save(anyString(), anyString());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void shouldReturnEmptyWhenApiReturnsNull() {
-        String userId = "user123";
-        String url = AUTH_URL + "/auth/me";
-        String token = "mock-token";
+    void shouldReturnEmptyWhenApiReturnsNull() throws MessagingException {
+        when(cacheRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
+        when(restTemplate.getForObject(anyString(), eq(Map.class))).thenReturn(null);
 
-        when(cacheRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(jwt);
-        when(jwt.getTokenValue()).thenReturn(token);
-        
-        when(restTemplate.exchange(eq(url), eq(HttpMethod.GET), any(HttpEntity.class), eq(Map.class)))
-                .thenReturn(ResponseEntity.ok(null));
-
-        Optional<String> result = identityAdapter.getEmailByUserId(userId);
+        Optional<String> result = identityAdapter.getEmailByUserId(USER_ID);
 
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldThrowMessagingExceptionWhenApiFails() {
+        when(cacheRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
+        when(restTemplate.getForObject(anyString(), eq(Map.class)))
+                .thenThrow(new RuntimeException("Connection Refused"));
+
+        MessagingException exception = assertThrows(MessagingException.class, () -> {
+            identityAdapter.getEmailByUserId(USER_ID);
+        });
+
+        assertTrue(exception.getMessage().contains("Failed to fetch user email"));
+        verify(cacheRepository, never()).save(anyString(), anyString());
     }
 }

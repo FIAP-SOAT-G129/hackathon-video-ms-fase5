@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,21 +33,22 @@ public class VideoController {
     private final RetryVideoUseCase retryVideoUseCase;
     private final UpdateVideoUseCase updateVideoUseCase;
 
-    @PostMapping(
-            path = "/user/{userId}",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<VideoResponseDTO> upload(
-            @PathVariable String userId,
+            @AuthenticationPrincipal String userId,
             @RequestPart("title") String title,
             @RequestPart("file") MultipartFile file
     ) throws IOException {
+        if(userId == null) throw new BadCredentialsException("Invalid user id");
+
         Video video = uploadVideoUseCase.execute(userId, title, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(VideoMapper.toDTO(video));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<VideoResponseDTO>> list(@PathVariable String userId) {
+    @GetMapping()
+    public ResponseEntity<List<VideoResponseDTO>> list(@AuthenticationPrincipal String userId) {
+        if(userId == null) throw new BadCredentialsException("Invalid user id");
+
         List<Video> videos = getVideoUseCase.findByUserId(userId);
         return ResponseEntity.ok(videos.stream().map(VideoMapper::toDTO).toList());
     }
