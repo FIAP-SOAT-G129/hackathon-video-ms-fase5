@@ -1,7 +1,7 @@
 package com.hackathon.video.adapter.out.storage;
 
-import br.com.fiap.storage.VideoStorageService;
-import br.com.fiap.storage.local.LocalVideoStorageService;
+import com.fiap.soat.storage.VideoStorageService;
+import com.fiap.soat.storage.local.LocalVideoStorageService;
 import com.hackathon.video.domain.enums.StorageType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
