@@ -84,4 +84,57 @@ class LocalStorageAdapterTest {
 
         assertFalse(Files.exists(videoPath));
     }
+
+    @Test
+    void shouldThrowExceptionWhenDeleteFails() {
+        LocalStorageAdapter adapter = createAdapter();
+        assertThrows(com.hackathon.video.exception.StorageException.class, () ->
+                adapter.delete(StorageType.VIDEO, "/non/existent/path")
+        );
+    }
+
+    @Test
+    void shouldWrapFileStorageException() {
+
+        VideoStorageService videoStorage = org.mockito.Mockito.mock(VideoStorageService.class);
+        VideoStorageService zipStorage = org.mockito.Mockito.mock(VideoStorageService.class);
+
+        LocalStorageAdapter adapter = new LocalStorageAdapter(videoStorage, zipStorage);
+
+        UUID videoId = UUID.randomUUID();
+        InputStream is = new ByteArrayInputStream("data".getBytes());
+
+        org.mockito.Mockito.when(videoStorage.store(
+                org.mockito.Mockito.any(),
+                org.mockito.Mockito.any()
+        )).thenThrow(
+                new com.fiap.soat.storage.exception.FileStorageException(
+                        "error",
+                        new RuntimeException()
+                )
+        );
+
+        assertThrows(com.hackathon.video.exception.StorageException.class, () ->
+                adapter.store(videoId, is, ".mp4")
+        );
+    }
+
+    @Test
+    void shouldRetrieveFromZipStorage() throws Exception {
+
+        VideoStorageService videoStorage = org.mockito.Mockito.mock(VideoStorageService.class);
+        VideoStorageService zipStorage = org.mockito.Mockito.mock(VideoStorageService.class);
+
+        LocalStorageAdapter adapter = new LocalStorageAdapter(videoStorage, zipStorage);
+
+        InputStream expected = new ByteArrayInputStream("zip".getBytes());
+
+        org.mockito.Mockito.when(zipStorage.retrieve("file.zip"))
+                .thenReturn(expected);
+
+        InputStream result = adapter.retrieve(StorageType.ZIP, "file.zip");
+
+        assertNotNull(result);
+        assertEquals("zip", new String(result.readAllBytes()));
+    }
 }

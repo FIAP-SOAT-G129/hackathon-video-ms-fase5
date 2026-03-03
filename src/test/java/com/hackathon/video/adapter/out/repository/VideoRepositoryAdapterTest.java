@@ -61,4 +61,32 @@ class VideoRepositoryAdapterTest {
             assertEquals(id, result.get().getId());
         }
     }
+
+    @Test
+    void shouldFindByUserId() {
+        String userId = "user123";
+        VideoEntity entity = new VideoEntity();
+        Video video = Video.builder().userId(userId).build();
+
+        when(jpaVideoRepository.findByUserId(userId)).thenReturn(java.util.List.of(entity));
+
+        try (MockedStatic<VideoMapper> mocked = mockStatic(VideoMapper.class)) {
+            mocked.when(() -> VideoMapper.toDomain(entity)).thenReturn(video);
+
+            java.util.List<Video> result = videoRepositoryAdapter.findByUserId(userId);
+
+            assertFalse(result.isEmpty());
+            assertEquals(userId, result.get(0).getUserId());
+        }
+    }
+
+    @Test
+    void shouldDelete() {
+        UUID id = UUID.randomUUID();
+        doNothing().when(jpaVideoRepository).deleteById(id);
+
+        videoRepositoryAdapter.delete(id);
+
+        verify(jpaVideoRepository, times(1)).deleteById(id);
+    }
 }
