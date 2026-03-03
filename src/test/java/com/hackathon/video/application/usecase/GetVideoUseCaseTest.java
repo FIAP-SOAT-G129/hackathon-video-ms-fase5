@@ -37,4 +37,37 @@ class GetVideoUseCaseTest {
         when(repository.findById(id)).thenReturn(Optional.empty());
         assertThrows(VideoNotFoundException.class, () -> useCase.findById(id));
     }
+
+    @Test
+    void shouldFindByUserId() {
+        String userId = "user1";
+
+        Video video1 = Video.builder().id(UUID.randomUUID()).build();
+        Video video2 = Video.builder().id(UUID.randomUUID()).build();
+
+        when(repository.findByUserId(userId))
+                .thenReturn(java.util.List.of(video1, video2));
+
+        var result = useCase.findByUserId(userId);
+
+        assertEquals(2, result.size());
+        assertEquals(video1, result.get(0));
+        assertEquals(video2, result.get(1));
+
+        verify(repository).findByUserId(userId);
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenUserHasNoVideos() {
+        String userId = "user2";
+
+        when(repository.findByUserId(userId))
+                .thenReturn(java.util.Collections.emptyList());
+
+        var result = useCase.findByUserId(userId);
+
+        assertTrue(result.isEmpty());
+
+        verify(repository).findByUserId(userId);
+    }
 }
