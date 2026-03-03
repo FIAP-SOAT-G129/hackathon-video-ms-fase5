@@ -106,4 +106,31 @@ class ProcessingResultUseCaseTest {
         verify(repository, never()).save(any());
         verify(notificationPort, never()).send(any(), any());
     }
+
+    @Test
+    void shouldNotSendNotificationWhenEmailNotFound() {
+        UUID id = UUID.randomUUID();
+
+        ProcessingRequestDTO request = ProcessingRequestDTO.builder()
+                .status(VideoStatus.DONE)
+                .zipPath("/path/to/zip.zip")
+                .build();
+
+        Video video = Video.builder()
+                .id(id)
+                .userId("user-1")
+                .title("my-video")
+                .status(VideoStatus.PENDING)
+                .build();
+
+        when(repository.findById(id)).thenReturn(Optional.of(video));
+        when(userIdentityPort.getEmailByUserId("user-1"))
+                .thenReturn(Optional.empty());
+
+        useCase.execute(id, request);
+
+        verify(repository).save(any(Video.class));
+
+        verify(notificationPort, never()).send(any(), any());
+    }
 }

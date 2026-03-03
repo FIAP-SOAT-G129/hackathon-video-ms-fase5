@@ -83,4 +83,12 @@ class VideoMapperTest {
         assertNull(VideoMapper.toDomain(null));
         assertNull(VideoMapper.toEntity(null));
     }
+
+    @Test
+    void testPrivateConstructor() throws Exception {
+        java.lang.reflect.Constructor<VideoMapper> constructor = VideoMapper.class.getDeclaredConstructor();
+        assertTrue(java.lang.reflect.Modifier.isPrivate(constructor.getModifiers()));
+        constructor.setAccessible(true);
+        constructor.newInstance();
+    }
 }

@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -198,6 +200,33 @@ class VideoControllerTest {
     }
 
     @Test
+    void shouldUpdateVideo() throws Exception {
+        UUID id = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "video.mp4", "video/mp4", "new content".getBytes());
+        MockMultipartFile title = new MockMultipartFile(
+                "title", "", MediaType.TEXT_PLAIN_VALUE, "Updated Title".getBytes());
+
+        Video video = Video.builder()
+                .id(id)
+                .title("Updated Title")
+                .status(VideoStatus.PROCESSING)
+                .build();
+
+        when(updateVideoUseCase.execute(eq(id), anyString(), any())).thenReturn(video);
+
+        String token = generateToken(VALID_USER_ID);
+
+        mockMvc.perform(multipart("/videos/" + id)
+                        .file(file)
+                        .file(title)
+                        .with(request -> { request.setMethod("PUT"); return request; })
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated Title"));
+    }
+
+    @Test
     void shouldHandleVideoNotFound() throws Exception {
         UUID id = UUID.randomUUID();
 
@@ -209,5 +238,45 @@ class VideoControllerTest {
         mockMvc.perform(get("/videos/" + id)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldThrowBadCredentialsWhenUserIdIsNullOnUpload() throws Exception {
+
+        VideoController controller = new VideoController(
+                uploadVideoUseCase,
+                getVideoUseCase,
+                downloadVideoUseCase,
+                deleteVideoUseCase,
+                retryVideoUseCase,
+                updateVideoUseCase
+        );
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "video.mp4", "video/mp4", "content".getBytes()
+        );
+
+        assertThrows(
+                BadCredentialsException.class,
+                () -> controller.upload(null, "title", file)
+        );
+    }
+
+    @Test
+    void shouldThrowBadCredentialsWhenUserIdIsNullOnList() {
+
+        VideoController controller = new VideoController(
+                uploadVideoUseCase,
+                getVideoUseCase,
+                downloadVideoUseCase,
+                deleteVideoUseCase,
+                retryVideoUseCase,
+                updateVideoUseCase
+        );
+
+        assertThrows(
+                BadCredentialsException.class,
+                () -> controller.list(null)
+        );
     }
 }
